@@ -1,0 +1,82 @@
+# Scan2Go - Full Stack Docker Compose
+# Uses Docker Hub images: mpmk/scan2go
+# Tags: frontend-v1.5, backend-v1.5 (latest points to v1.5)
+
+services:
+  # ============================================
+  # React Frontend with Nginx
+  # ============================================
+  frontend:
+    image: mpmk/scan2go:frontend-v1.5
+    container_name: s2g-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - scan2go_network
+
+  # ============================================
+  # Express Backend API
+  # ============================================
+  backend:
+    image: mpmk/scan2go:backend-v1.5
+    container_name: s2g-backend
+    restart: unless-stopped
+    environment:
+      SERVER_IP: 0.0.0.0
+      SERVER_PORT: 6301
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost,http://localhost:3000}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-scan2go}
+      DB_USER: ${POSTGRES_USER:-scan2go}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - scan2go_network
+
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  db:
+    image: postgres:16
+    container_name: s2g-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-scan2go}
+      POSTGRES_USER: ${POSTGRES_USER:-scan2go}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-scan2go} -d ${POSTGRES_DB:-scan2go}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - scan2go_network
+
+volumes:
+  db_data:
+    name: s2g-db-data
+  uploads_data:
+    name: s2g-uploads
+  logs_data:
+    name: s2g-logs
+
+networks:
+  scan2go_network:
+    name: scan2go-network
+    driver: bridge

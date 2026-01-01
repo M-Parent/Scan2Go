@@ -23,7 +23,7 @@ export function CardProject({
 
   const handleDelete = () => {
     const confirmDelete = window.confirm(
-      `Êtes-vous sûr de vouloir supprimer le projet ${projectName} ?`
+      `Are you sure you want to delete the project ${projectName}?`
     );
     if (confirmDelete) {
       onDelete();

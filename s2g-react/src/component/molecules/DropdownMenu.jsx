@@ -26,7 +26,7 @@ export function DropdownMenu({ trigger, items, className = "" }) {
   useEffect(() => {
     if (isOpen && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
-      // Utiliser position fixe basée sur le viewport (pas le scroll)
+      // Use fixed position based on viewport (not scroll)
       setPosition({
         top: rect.bottom + 4,
         left: rect.right - 200,

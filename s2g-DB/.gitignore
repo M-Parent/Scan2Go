@@ -1,0 +1,12 @@
+# Environment files (contains sensitive data)
+.env
+.env.production
+.env.local
+.env.*.local
+
+# PostgreSQL data directory (large files, should not be in git)
+data/
+
+# OS generated files
+.DS_Store
+Thumbs.db

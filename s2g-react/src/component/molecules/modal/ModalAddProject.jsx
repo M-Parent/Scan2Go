@@ -6,7 +6,7 @@ import { ModalFooter } from "./ModalFooter";
 import API_BASE_URL from "../../../api";
 
 export function ModalAddProject({ onCloseModal, onProjectAdded }) {
-  // Ajout de la prop onProjectAdded
+  // Added the onProjectAdded prop
   const [projectName, setProjectName] = useState("");
   const [projectImage, setProjectImage] = useState(null);
   const [error, setError] = useState(null);
@@ -16,7 +16,7 @@ export function ModalAddProject({ onCloseModal, onProjectAdded }) {
     setError(null);
 
     if (!projectName) {
-      setError("Le nom du projet est requis.");
+      setError("Project name is required.");
       return;
     }
 
@@ -31,12 +31,12 @@ export function ModalAddProject({ onCloseModal, onProjectAdded }) {
       });
 
       if (response.ok) {
-        console.log("Projet ajouté avec succès !");
+        console.log("Project added successfully!");
 
-        const newProject = await response.json(); // Récupérer le nouveau projet depuis la réponse
+        const newProject = await response.json(); // Get the new project from the response
 
         if (onProjectAdded) {
-          onProjectAdded(newProject); // Appeler la fonction de callback
+          onProjectAdded(newProject); // Call the callback function
         }
 
         if (onCloseModal) onCloseModal();
@@ -44,20 +44,20 @@ export function ModalAddProject({ onCloseModal, onProjectAdded }) {
         setProjectName("");
         setProjectImage(null);
       } else {
-        // Lire le corps une seule fois et tenter d'analyser JSON, sinon afficher le texte brut
+        // Read the body once and try to parse JSON, otherwise display raw text
         try {
           const text = await response.text();
           try {
             const errorData = JSON.parse(text);
-            setError(errorData.error || "Erreur lors de l'ajout du projet.");
-            console.error("Erreur lors de l'ajout du projet:", errorData);
+            setError(errorData.error || "Error adding project.");
+            console.error("Error adding project:", errorData);
           } catch (parseError) {
-            setError("Erreur lors de l'ajout du projet (erreur serveur)");
-            console.error("Erreur lors de l'ajout du projet (non-JSON):", text);
+            setError("Error adding project (server error)");
+            console.error("Error adding project (non-JSON):", text);
           }
         } catch (readError) {
-          setError("Erreur lors de l'ajout du projet (lecture réponse)");
-          console.error("Impossible de lire la réponse du serveur:", readError);
+          setError("Error adding project (reading response)");
+          console.error("Unable to read server response:", readError);
         }
       }
     } catch (error) {

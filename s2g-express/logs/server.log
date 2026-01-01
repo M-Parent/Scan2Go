@@ -306,3 +306,24 @@
 2026-01-01 11:42:38 error: Error updating section: oldFilePath is not defined
 2026-01-01 11:42:40 error: Error updating section: oldFilePath is not defined
 2026-01-01 11:46:14 info: Fermeture du serveur...
+2026-01-01 11:46:15 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:46:16 info: Server running on Port : 6301
+2026-01-01 11:46:16 info: Postgres connection OK
+2026-01-01 11:46:16 info: Table "project" créée ou déjà existante.
+2026-01-01 11:46:16 info: Table "section" créée ou déjà existante.
+2026-01-01 11:46:16 info: Table "file" créée ou déjà existante.
+2026-01-01 11:46:16 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:46:16 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:46:33 info: Updated file paths for file ID 12: file1 - New section: sec12345
+2026-01-01 11:46:33 info: Updated file paths for file ID 13: file2 - New section: sec12345
+2026-01-01 11:46:33 info: Deleted old section folder: C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\sec123
+2026-01-01 11:46:33 info: Section name changed - Old Name: "sec123", New Name: "sec12345", for project: "test", Updated at: Thu Jan 01 2026 16:39:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:47:17 info: Project files exported: Project ID=9, Project Name="test", Exported at: 2026-01-01T16:47:17.092Z
+2026-01-01 11:47:49 info: File uploaded: ID="16", File name: "file3", In Section: "sec12345", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:47:48 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:48:03 info: Updated file paths for file ID 12: file1 - New section: sec1
+2026-01-01 11:48:03 info: Updated file paths for file ID 13: file2 - New section: sec1
+2026-01-01 11:48:03 info: Updated file paths for file ID 16: file3 - New section: sec1
+2026-01-01 11:48:03 info: Deleted old section folder: C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\sec12345
+2026-01-01 11:48:03 info: Section name changed - Old Name: "sec12345", New Name: "sec1", for project: "test", Updated at: Thu Jan 01 2026 16:39:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:49:21 info: Section files exported: Section ID=18, Section Name="sec2", Project Name="test", Exported at: 2026-01-01T16:49:21.206Z
+2026-01-01 11:49:31 info: Section QR codes exported: Section ID=18, Section Name="sec2", Project Name="test", Exported at: 2026-01-01T16:49:31.482Z

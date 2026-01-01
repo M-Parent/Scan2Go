@@ -124,33 +124,33 @@ export function Project() {
         }
       };
 
-      // Parcourir toutes les sections
+      // Loop through all sections
       for (const section of sections) {
         const sectionId = section.id;
         const sectionName = section.section_name || "";
         const sectionNameLower = sectionName.toLowerCase();
 
-        // Vérifier si le nom de la section correspond à la recherche
+        // Check if the section name matches the search
         const sectionMatches = sectionNameLower.includes(term);
 
-        // Récupérer les fichiers de cette section
+        // Get the files for this section
         const files = sectionFiles[sectionId] || [];
 
         for (const file of files) {
           const fileName = (file.name || "").toString().toLowerCase();
           let matched = false;
 
-          // Match si le nom de fichier correspond
+          // Match if file name matches
           if (fileName.includes(term)) {
             matched = true;
           }
 
-          // Match si le nom de section correspond
+          // Match if section name matches
           if (sectionMatches) {
             matched = true;
           }
 
-          // Match si un tag correspond
+          // Match if a tag matches
           if (!matched) {
             const tags = await getTagsForFile(file.id);
             if (Array.isArray(tags)) {
@@ -215,7 +215,7 @@ export function Project() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${sectionName}_Section_File.zip`; // Utilisation de sectionName ici
+      a.download = `${sectionName}_Section_File.zip`; // Using sectionName here
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -240,7 +240,7 @@ export function Project() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${sectionName}Section_Qr_Code.zip`; // Nom du fichier ZIP modifié
+      a.download = `${sectionName}Section_Qr_Code.zip`; // Modified ZIP file name
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -261,7 +261,7 @@ export function Project() {
       }
     });
     setTotalFileSize(totalSize);
-  }, [sectionFiles]); // sectionFiles est la seule dépendance de calculateTotalFileSize
+  }, [sectionFiles]); // sectionFiles is the only dependency for calculateTotalFileSize
 
   useEffect(() => {
     calculateTotalFileSize();
@@ -287,7 +287,7 @@ export function Project() {
   }, [sectionFiles]);
 
   useEffect(() => {
-    // Récupérer les fichiers pour chaque section
+    // Fetch files for each section
     sections.forEach((section) => {
       fetchSectionFiles(section.id);
     });
@@ -479,7 +479,7 @@ export function Project() {
 
   const handleDeleteProject = async (projectId) => {
     const confirmDelete = window.confirm(
-      "Êtes-vous sûr de vouloir supprimer ce projet ?"
+      "Are you sure you want to delete this project?"
     );
     if (confirmDelete) {
       try {
@@ -488,28 +488,23 @@ export function Project() {
         });
 
         if (response.ok) {
-          console.log("Projet supprimé avec succès");
-          navigate("/"); // Redirigez vers la page d'accueil
+          console.log("Project deleted successfully");
+          navigate("/"); // Redirect to home page
         } else {
-          console.error(
-            "Erreur lors de la suppression du projet:",
-            response.status
-          );
+          console.error("Error deleting project:", response.status);
           const errorData = await response.json();
-          alert(errorData.error || "Échec de la suppression du projet");
+          alert(errorData.error || "Failed to delete project");
         }
       } catch (error) {
-        console.error("Erreur de connexion:", error);
-        alert(
-          "Une erreur réseau s'est produite lors de la suppression du projet."
-        );
+        console.error("Connection error:", error);
+        alert("A network error occurred while deleting the project.");
       }
     }
   };
 
   const handleDeleteSection = async (sectionId) => {
     const confirmDelete = window.confirm(
-      "Êtes-vous sûr de vouloir supprimer cette section ?"
+      "Are you sure you want to delete this section?"
     );
 
     if (confirmDelete) {
@@ -724,8 +719,7 @@ export function Project() {
           {/* Message si aucun résultat n'est trouvé */}
           {noResultsFound && (
             <div className="lg:mx-48 mx-12 text-white text-center mt-4">
-              Aucune section, tags ou fichier trouvé avec cette recherche dans
-              ce projet.
+              No section, tags or file found with this search in this project.
             </div>
           )}
 
@@ -837,10 +831,10 @@ export function Project() {
                             sectionFiles={sectionFiles}
                             setSectionFiles={setSectionFiles}
                             section={section}
-                            project={project} // Ajout de project
-                            fetchSectionFiles={fetchSectionFiles} // Ajout de fetchSectionFiles
-                            setSelectedSection={setSelectedSection} // Ajout de setSelectedSection
-                            handleCloseModals={handleCloseModals} // Ajout de handleCloseModals
+                            project={project} // Added project
+                            fetchSectionFiles={fetchSectionFiles} // Added fetchSectionFiles
+                            setSelectedSection={setSelectedSection} // Added setSelectedSection
+                            handleCloseModals={handleCloseModals} // Added handleCloseModals
                           />
                         </div>
                       </div>
@@ -865,7 +859,7 @@ export function Project() {
                 projectName={project.project_name}
                 sectionName={selectedSection.section_name}
                 onFileUploaded={() => {
-                  fetchSectionFiles(selectedSection.id); // Appel de la fonction de fetch ici
+                  fetchSectionFiles(selectedSection.id); // Call the fetch function here
                 }}
                 sectionId={selectedSection.id}
               />

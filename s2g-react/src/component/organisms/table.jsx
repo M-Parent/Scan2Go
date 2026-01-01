@@ -16,7 +16,7 @@ export function Table({
 }) {
   const [copyFeedback, setCopyFeedback] = useState(null);
   const [fileTags, setFileTags] = useState({});
-  const [qrCodeUrl, setQrCodeUrl] = useState(null); // State pour l'URL du QR code
+  const [qrCodeUrl, setQrCodeUrl] = useState(null); // State for QR code URL
   const [showQrCodePopup, setShowQrCodePopup] = useState(false);
   const [currentFileName, setCurrentFileName] = useState("");
   const [currentSectionName, setCurrentSectionName] = useState("");
@@ -30,12 +30,12 @@ export function Table({
   const handleCopyQRCodeURL = async (url) => {
     try {
       await navigator.clipboard.writeText(url);
-      setCopyFeedback("copied"); // Déclencher le feedback
-      setTimeout(() => setCopyFeedback(null), 2000); // Masquer le feedback après 2 secondes
+      setCopyFeedback("copied"); // Trigger feedback
+      setTimeout(() => setCopyFeedback(null), 2000); // Hide feedback after 2 seconds
     } catch (err) {
       console.error("Failed to copy text: ", err);
-      setCopyFeedback("failed"); // Déclencher le feedback d'erreur
-      setTimeout(() => setCopyFeedback(null), 2000); // Masquer le feedback après 2 secondes
+      setCopyFeedback("failed"); // Trigger error feedback
+      setTimeout(() => setCopyFeedback(null), 2000); // Hide feedback after 2 seconds
     }
   };
 
@@ -53,11 +53,11 @@ export function Table({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${fileName}.zip`; // Utilisation du fileName fourni
+      a.download = `${fileName}.zip`; // Using the provided fileName
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      a.remove(); // Nettoyage de l'élément a
+      a.remove(); // Cleanup the anchor element
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Failed to download file.");
@@ -116,7 +116,7 @@ export function Table({
 
   const handleFileUploaded = async () => {
     await fetchSectionFiles(section.id);
-    // Mettre à jour les tags après la mise à jour des fichiers
+    // Update tags after file update
     if (selectedFileToEdit) {
       fetchFileTags(selectedFileToEdit.id);
     }
@@ -125,7 +125,7 @@ export function Table({
 
   const handleDeleteFile = async (fileId, sectionId) => {
     const confirmDelete = window.confirm(
-      "Êtes-vous sûr de vouloir supprimer ce fichier ?"
+      "Are you sure you want to delete this file?"
     );
 
     if (confirmDelete) {
@@ -138,7 +138,7 @@ export function Table({
         );
 
         if (response.ok) {
-          // Mettre à jour l'état sectionFiles pour supprimer le fichier
+          // Update sectionFiles state to remove the file
           setSectionFiles((prevFiles) => {
             const updatedFiles = { ...prevFiles };
             if (updatedFiles[sectionId]) {
@@ -209,7 +209,7 @@ export function Table({
     }
     if (showQrCodePopup) {
       setShowQrCodePopup(false);
-      setQrCodeUrl(null); // Réinitialiser l'URL du QR code
+      setQrCodeUrl(null); // Reset QR code URL
       return;
     }
     if (!url) {
@@ -254,19 +254,18 @@ export function Table({
               className="hover:border hover:bg-white/20 duration-300 transition ease-in-out"
             >
               <td className="px-6 py-4 text-lg text-nowrap">
-                {file.name} {/* Afficher le nom du fichier */}
+                {file.name} {/* Display file name */}
               </td>
               <th className="px-6 py-4 relative">
                 <button
-                  onClick={
-                    (event) =>
-                      handleToggleQrCodePopup(
-                        file.url_qr_code,
-                        file.name,
-                        section.section_name,
-                        project.project_name,
-                        event
-                      ) // Correction ici
+                  onClick={(event) =>
+                    handleToggleQrCodePopup(
+                      file.url_qr_code,
+                      file.name,
+                      section.section_name,
+                      project.project_name,
+                      event
+                    )
                   }
                   ref={iconRef}
                 >
@@ -286,7 +285,7 @@ export function Table({
                         {currentProjectName} / {currentSectionName} /{" "}
                         <span className="text-red-500">{currentFileName}</span>
                       </p>{" "}
-                      {/* Utilisation de currentFileName */}
+                      {/* Using currentFileName */}
                       <img
                         className="bg-transparent rounded-2xl"
                         src={qrCodeUrl}
@@ -304,7 +303,7 @@ export function Table({
                 </button>
               </th>
               <th className="sm:flex sm:justify-center py-4">
-                {/* Afficher les tags ici */}
+                {/* Display tags here */}
                 <div>
                   {fileTags[file.id]?.map((tag, index) => (
                     <span

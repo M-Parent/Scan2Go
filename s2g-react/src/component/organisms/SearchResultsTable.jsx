@@ -16,7 +16,7 @@ export function SearchResultsTable({
 }) {
   const [copyFeedback, setCopyFeedback] = useState(null);
   const [fileTags, setFileTags] = useState({});
-  const [qrCodeUrl, setQrCodeUrl] = useState(null); // State pour l'URL du QR code
+  const [qrCodeUrl, setQrCodeUrl] = useState(null); // State for QR code URL
   const [showQrCodePopup, setShowQrCodePopup] = useState(false);
   const [currentFileName, setCurrentFileName] = useState("");
   const [currentSectionName, setCurrentSectionName] = useState("");
@@ -114,7 +114,7 @@ export function SearchResultsTable({
 
   const handleDeleteFile = async (fileId, sectionId) => {
     const confirmDelete = window.confirm(
-      "Êtes-vous sûr de vouloir supprimer ce fichier ?"
+      "Are you sure you want to delete this file?"
     );
 
     if (confirmDelete) {

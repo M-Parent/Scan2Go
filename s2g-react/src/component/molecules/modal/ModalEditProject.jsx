@@ -7,14 +7,14 @@ import API_BASE_URL from "../../../api";
 
 export function ModalEditProject({
   onCloseModalEditProject,
-  project, // Peut être null si les données doivent être chargées
-  projectId, // ID du projet si les données doivent être chargées
+  project, // Can be null if data needs to be loaded
+  projectId, // Project ID if data needs to be loaded
   onProjectUpdated,
 }) {
   const [editedProject, setEditedProject] = useState(null);
   const [projectImage, setProjectImage] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false); // Ajout d'un état de chargement
+  const [loading, setLoading] = useState(false); // Added loading state
   const fileInputRef = useRef(null);
 
   useEffect(() => {

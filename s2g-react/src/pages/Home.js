@@ -141,7 +141,7 @@ export function Home() {
           </div>
         </ProjectGlass>
       ) : (
-        <div className="flex justify-center mt-32">
+        <div className="flex justify-center mt-32 overflow-hidden pb-2">
           <button
             className="transition hover:translate-y-1 hover:duration-700 hover:ease-in-out"
             onClick={() => setShowModalAddProject(true)}

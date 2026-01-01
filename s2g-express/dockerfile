@@ -1,20 +1,27 @@
-# Utiliser une image Node.js comme base
-FROM node:18-alpine
+# s2g-express Dockerfile
+FROM node:20-alpine
 
-# Définir le répertoire de travail dans le conteneur
+# Set working directory
 WORKDIR /app
 
-# Copier les fichiers package*.json pour installer les dépendances
+# Copy package files
 COPY package*.json ./
 
-# Installer les dépendances
-RUN npm install
+# Install dependencies (production only)
+RUN npm ci --only=production
 
-# Copier le reste du code source
+# Copy source code
 COPY . .
 
-# Exposer le port sur lequel votre application Express écoute
+# Create uploads and logs directories
+RUN mkdir -p uploads logs
+
+# Expose port
 EXPOSE 6301
 
-# Commande pour démarrer l'application Express
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:6301/api/projects || exit 1
+
+# Start the application
 CMD ["node", "server.js"]

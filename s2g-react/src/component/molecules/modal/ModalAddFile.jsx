@@ -52,15 +52,12 @@ export function ModalAddFile({
         );
         const data = await response.json();
         if (data.exists) {
-          setFileNameError("Un fichier avec ce nom existe déjà.");
+          setFileNameError("A file with this name already exists.");
         } else {
           setFileNameError("");
         }
       } catch (error) {
-        console.error(
-          "Erreur lors de la vérification du nom de fichier :",
-          error
-        );
+        console.error("Error checking file name:", error);
       }
     };
 
@@ -126,7 +123,7 @@ export function ModalAddFile({
     }
 
     if (!file) {
-      alert("Veuillez sélectionner un fichier.");
+      alert("Please select a file.");
       return;
     }
 
@@ -161,17 +158,15 @@ export function ModalAddFile({
             }
           }
         } else {
-          throw new Error(
-            errorData.message || "Erreur lors du téléchargement du fichier."
-          );
+          throw new Error(errorData.message || "Error uploading file.");
         }
       } else {
         onFileUploaded();
         onCloseModalAddFile();
       }
     } catch (error) {
-      console.error("Erreur lors de la requête :", error);
-      alert("Une erreur s'est produite lors du téléchargement.");
+      console.error("Error during request:", error);
+      alert("An error occurred during upload.");
     }
   };
 
