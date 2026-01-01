@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Node modules (will be installed in container)
+**/node_modules
+
+# Environment files
+**/.env
+**/.env.local
+**/.env.production
+
+# Logs
+**/logs
+**/*.log
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+**/dist
+
+# Keep React build for all-in-one image
+!s2g-react/build
+
+# Database data (mounted as volume)
+s2g-DB/data
+
+# Documentation
+*.md
+!README.md

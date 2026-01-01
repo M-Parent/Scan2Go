@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment files (contains sensitive data)
+.env
+.env.production
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+.dockerignore
+
+# Uploads (optional - uncomment if you don't want to track uploads)
+# uploads/
