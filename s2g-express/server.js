@@ -65,7 +65,7 @@ process.on("SIGINT", () => {
   process.exit(0); // Arrêt du processus
 });
 
-// Démarrage du serveur
-app.listen(port, () => {
-  logger.info(`Server running on Port : ${port}`); // Utilisation de template literals
+// Démarrage du serveur - Listen on all interfaces (0.0.0.0)
+app.listen(port, "0.0.0.0", () => {
+  logger.info(`Server running on 0.0.0.0:${port}`);
 });
