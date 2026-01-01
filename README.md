@@ -135,7 +135,7 @@ docker-compose up -d
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   Database (Port 5432)                       │
-│                   postgres:16                                │
+│                   postgres:18                                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -197,10 +197,10 @@ services:
       - scan2go_network
 
   # ============================================
-  # Database - PostgreSQL 16
+  # Database - PostgreSQL 18
   # ============================================
   db:
-    image: postgres:16
+    image: postgres:18
     container_name: s2g-db
     restart: unless-stopped
     environment:
@@ -342,7 +342,7 @@ POSTGRES_PASSWORD=MyStr0ng!Passw0rd#2024
 ### Prerequisites
 
 - 📦 Node.js 20+
-- 🐘 PostgreSQL 16+
+- 🐘 PostgreSQL 18+
 - 🐳 Docker & Docker Compose (optional)
 
 ### Local Development

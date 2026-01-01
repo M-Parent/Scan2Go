@@ -2,13 +2,13 @@
 set -e
 
 # Initialize PostgreSQL if needed
-if [ ! -f /var/lib/postgresql/16/main/PG_VERSION ]; then
+if [ ! -f /var/lib/postgresql/18/main/PG_VERSION ]; then
     echo "Initializing PostgreSQL database..."
-    su - postgres -c "/usr/lib/postgresql/16/bin/initdb -D /var/lib/postgresql/16/main"
+    su - postgres -c "/usr/lib/postgresql/18/bin/initdb -D /var/lib/postgresql/18/main"
 fi
 
 # Start PostgreSQL temporarily
-su - postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main -l /var/log/postgresql/postgresql.log start"
+su - postgres -c "/usr/lib/postgresql/18/bin/pg_ctl -D /var/lib/postgresql/18/main -l /var/log/postgresql/postgresql.log start"
 
 # Wait for PostgreSQL to be ready
 until su - postgres -c "pg_isready" > /dev/null 2>&1; do
@@ -22,7 +22,7 @@ su - postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname='${POSTGRES
 su - postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO ${POSTGRES_USER};\""
 
 # Stop PostgreSQL (supervisor will restart it)
-su - postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main stop"
+su - postgres -c "/usr/lib/postgresql/18/bin/pg_ctl -D /var/lib/postgresql/18/main stop"
 
 # Update backend environment
 export DB_HOST=localhost

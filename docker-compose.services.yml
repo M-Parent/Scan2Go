@@ -7,7 +7,7 @@ services:
   # PostgreSQL Database Only
   # ============================================
   postgres:
-    image: postgres:16
+    image: postgres:18
     container_name: s2g-postgres-only
     restart: unless-stopped
     environment:

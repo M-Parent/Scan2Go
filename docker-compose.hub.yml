@@ -46,7 +46,7 @@ services:
   # PostgreSQL Database
   # ============================================
   db:
-    image: postgres:16
+    image: postgres:18
     container_name: s2g-db
     restart: unless-stopped
     environment:
