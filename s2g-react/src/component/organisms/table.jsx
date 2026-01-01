@@ -271,7 +271,7 @@ export function Table({
                   ref={iconRef}
                 >
                   <img
-                    src="../img/icon/qr-code-scan.svg"
+                    src="/img/icon/qr-code-scan.svg"
                     alt="Qr Code File"
                     width={24}
                   />
@@ -300,11 +300,7 @@ export function Table({
               </th>
               <th className="px-6 py-4">
                 <button onClick={() => handleCopyQRCodeURL(file.url_qr_code)}>
-                  <img
-                    src="../img/icon/share.svg"
-                    alt="Share File"
-                    width={24}
-                  />
+                  <img src="/img/icon/share.svg" alt="Share File" width={24} />
                 </button>
               </th>
               <th className="sm:flex sm:justify-center py-4">
@@ -327,7 +323,7 @@ export function Table({
                   >
                     <img
                       className="me-2"
-                      src="../img/icon/file-arrow-down.svg"
+                      src="/img/icon/file-arrow-down.svg"
                       alt="Download File"
                       width={24}
                     />
@@ -335,14 +331,14 @@ export function Table({
                   <button onClick={() => handleEditFile(file)}>
                     <img
                       className="me-2"
-                      src="../img/icon/pencil-square.svg"
+                      src="/img/icon/pencil-square.svg"
                       alt="Edit File"
                       width={24}
                     />
                   </button>
                   <button onClick={() => handleDeleteFile(file.id, section.id)}>
                     <img
-                      src="../img/icon/trash.svg"
+                      src="/img/icon/trash.svg"
                       alt="Delete File"
                       width={24}
                     />

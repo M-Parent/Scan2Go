@@ -80,10 +80,11 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     const fileId = insertResults.insertId;
 
-    const serverIP = process.env.SERVER_IP_REACT || getLocalIPv4();
-    const fileUrl = `http://${serverIP}/${filePath}`; // Pas de remplacement nécessaire ici, déjà Unix-style
+    const serverIP = process.env.SERVER_IP || getLocalIPv4();
+    const serverPort = process.env.SERVER_PORT || 6301;
+    const fileUrl = `http://${serverIP}:${serverPort}/api/uploadFile/download-file/${fileId}`;
 
-    const pdfPath = path.posix.join(
+    const pdfPath = path.join(
       __dirname,
       "..",
       "uploads",
@@ -156,11 +157,11 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
         doc.end();
 
-        const pdfRelativePath = path.posix.relative(
-          // Utilisation de path.posix
-          path.posix.join(__dirname, ".."), // Utilisation de path.posix
-          pdfPath
-        );
+        // Calculer le chemin relatif et normaliser avec des forward slashes
+        const pdfRelativePath = path
+          .relative(path.join(__dirname, ".."), pdfPath)
+          .split(path.sep)
+          .join("/");
 
         await db
           .promise()
@@ -249,6 +250,47 @@ router.use("/uploads", (req, res, next) => {
 
 router.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
+// Route de téléchargement direct du fichier (pour les QR codes)
+router.get("/download-file/:fileId", async (req, res) => {
+  const { fileId } = req.params;
+
+  try {
+    const [fileResults] = await db
+      .promise()
+      .query("SELECT * FROM file WHERE id = ?", [fileId]);
+
+    if (fileResults.length === 0) {
+      return res.status(404).json({ error: "Fichier non trouvé." });
+    }
+
+    const file = fileResults[0];
+    const filePath = path.join(__dirname, "..", file.path_file);
+
+    // Vérifier si le fichier existe
+    if (!fs.existsSync(filePath)) {
+      return res
+        .status(404)
+        .json({ error: "Fichier non trouvé sur le disque." });
+    }
+
+    // Obtenir le nom du fichier original
+    const originalFileName = path.basename(file.path_file);
+
+    // Définir les headers pour le téléchargement
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${originalFileName}"`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
+
+    // Envoyer le fichier
+    res.sendFile(filePath);
+  } catch (err) {
+    console.error("Erreur lors du téléchargement du fichier :", err);
+    res.status(500).json({ error: "Erreur serveur lors du téléchargement." });
+  }
+});
+
 router.get("/files/:sectionId", async (req, res) => {
   const { sectionId } = req.params;
 
@@ -262,8 +304,15 @@ router.get("/files/:sectionId", async (req, res) => {
       files.map(async (file) => {
         try {
           const filePath = path.join(__dirname, "..", file.path_file);
-          const stats = fs.statSync(filePath);
-          return { ...file, size: stats.size };
+          if (fs.existsSync(filePath)) {
+            const stats = fs.statSync(filePath);
+            return { ...file, size: stats.size };
+          } else {
+            console.warn(
+              `File not found on disk for ${file.name}: ${filePath}`
+            );
+            return { ...file, size: 0 };
+          }
         } catch (error) {
           console.error(`Error getting file size for ${file.name}:`, error);
           return { ...file, size: 0 }; // Taille 0 en cas d'erreur
@@ -450,6 +499,12 @@ router.put("/files/:fileId", upload.single("file"), async (req, res) => {
   ) => {
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument();
+      // Ensure destination directory exists
+      try {
+        fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
+      } catch (e) {
+        // ignore mkdir errors
+      }
       doc.pipe(fs.createWriteStream(pdfPath));
 
       QRCode.toDataURL(fileUrl, { errorCorrectionLevel: "H" }, (err, url) => {
@@ -520,62 +575,87 @@ router.put("/files/:fileId", upload.single("file"), async (req, res) => {
     const oldFileName = existingFiles[0].name;
     const oldFilePath = path.join(__dirname, "..", existingFiles[0].path_file);
     const oldFolderPath = path.dirname(oldFilePath);
-    const parentFolder = path.posix.join(
-      // Utilisation de path.posix
+    const oldFileBasename = path.basename(oldFilePath);
+
+    // Filesystem-safe paths (use platform-aware path.join for FS operations)
+    const parentFolderFs = path.join(
       __dirname,
       "..",
       "uploads",
       projectName,
       sectionName
     );
-    const newFolderPath = path.posix.join(parentFolder, fileName); // Utilisation de path.posix
-    const newFilePath = path.posix.resolve(
-      // Utilisation de path.posix
-      newFolderPath,
-      newFile ? newFile.originalname : path.basename(oldFilePath)
+    const newFolderFs = path.join(parentFolderFs, fileName);
+    const newFileFs = path.join(
+      newFolderFs,
+      newFile ? newFile.originalname : oldFileBasename
     );
 
-    if (oldFileName !== fileName) {
-      const oldPdfPath = path.posix.join(
-        // Utilisation de path.posix
-        __dirname,
-        "..",
-        "uploads",
-        projectName,
-        sectionName,
-        oldFileName,
-        `${oldFileName}_qr.pdf`
-      );
-      if (fs.existsSync(oldPdfPath)) fs.unlinkSync(oldPdfPath);
-      if (fs.existsSync(oldFolderPath))
-        fs.renameSync(oldFolderPath, newFolderPath);
-    }
+    // Fonction pour supprimer un dossier récursivement
+    const deleteFolderRecursive = (folderPath) => {
+      if (fs.existsSync(folderPath)) {
+        fs.readdirSync(folderPath).forEach((file) => {
+          const curPath = path.join(folderPath, file);
+          if (fs.lstatSync(curPath).isDirectory()) {
+            deleteFolderRecursive(curPath);
+          } else {
+            fs.unlinkSync(curPath);
+          }
+        });
+        fs.rmdirSync(folderPath);
+      }
+    };
 
+    // Cas 1: Nouveau fichier uploadé - on supprime tout l'ancien dossier et on recrée
     if (newFile) {
-      if (!fs.existsSync(newFolderPath))
-        fs.mkdirSync(newFolderPath, { recursive: true });
-
-      const oldZipFilePath = path.posix.join(
-        // Utilisation de path.posix
-        newFolderPath,
-        path.basename(oldFilePath)
-      );
-      if (fs.existsSync(oldZipFilePath)) {
-        fs.unlinkSync(oldZipFilePath);
+      // Supprimer l'ancien dossier complet
+      if (fs.existsSync(oldFolderPath)) {
+        deleteFolderRecursive(oldFolderPath);
+        logger.info(`Ancien dossier supprimé: ${oldFolderPath}`);
       }
 
-      fs.renameSync(newFile.path, newFilePath);
+      // Créer le nouveau dossier
+      fs.mkdirSync(newFolderFs, { recursive: true });
+      logger.info(`Nouveau dossier créé: ${newFolderFs}`);
+
+      // Déplacer le nouveau fichier uploadé
+      fs.renameSync(newFile.path, newFileFs);
+      logger.info(`Nouveau fichier uploadé: ${newFileFs}`);
+    }
+    // Cas 2: Pas de nouveau fichier mais le nom a changé - on renomme le dossier
+    else if (oldFileName !== fileName) {
+      if (fs.existsSync(oldFolderPath)) {
+        // Supprimer l'ancien PDF (sera régénéré avec le nouveau nom)
+        const oldPdfPath = path.join(oldFolderPath, `${oldFileName}_qr.pdf`);
+        if (fs.existsSync(oldPdfPath)) {
+          fs.unlinkSync(oldPdfPath);
+        }
+
+        // Renommer le dossier
+        fs.mkdirSync(path.dirname(newFolderFs), { recursive: true });
+        fs.renameSync(oldFolderPath, newFolderFs);
+        logger.info(`Dossier renommé de ${oldFolderPath} vers ${newFolderFs}`);
+      }
+    }
+    // Cas 3: Ni nouveau fichier ni changement de nom - on régénère juste le PDF
+    else {
+      // Supprimer l'ancien PDF (sera régénéré)
+      const oldPdfPath = path.join(oldFolderPath, `${oldFileName}_qr.pdf`);
+      if (fs.existsSync(oldPdfPath)) {
+        fs.unlinkSync(oldPdfPath);
+      }
     }
 
-    const newFileRelativePath = path.posix.relative(
-      // Utilisation de path.posix
-      path.posix.join(__dirname, "..", "uploads"), // Utilisation de path.posix
-      newFilePath
-    );
-    const serverIP = process.env.SERVER_IP_REACT || getLocalIPv4();
-    const fileUrl = `http://${serverIP}/uploads/${newFileRelativePath}`; // Pas de remplacement nécessaire, déjà Unix-style
-    const pdfPath = path.posix.join(
-      // Utilisation de path.posix
+    // Build DB-stored relative path (use forward slashes)
+    const newFileRelativePath = path
+      .relative(path.join(__dirname, ".."), newFileFs)
+      .split(path.sep)
+      .join("/");
+
+    const serverIP = process.env.SERVER_IP || getLocalIPv4();
+    const serverPort = process.env.SERVER_PORT || 6301;
+    const fileUrl = `http://${serverIP}:${serverPort}/api/uploadFile/download-file/${fileId}`;
+    const pdfFsPath = path.join(
       __dirname,
       "..",
       "uploads",
@@ -587,25 +667,25 @@ router.put("/files/:fileId", upload.single("file"), async (req, res) => {
 
     await generatePdfAndQrCode(
       fileUrl,
-      pdfPath,
+      pdfFsPath,
       fileName,
       projectName,
       sectionName,
       tags
     );
 
-    const pdfRelativePath = path.posix.relative(
-      // Utilisation de path.posix
-      path.posix.join(__dirname, ".."), // Utilisation de path.posix
-      pdfPath
-    );
+    // Calculer le chemin relatif et normaliser avec des forward slashes
+    const pdfRelativePath = path
+      .relative(path.join(__dirname, ".."), pdfFsPath)
+      .split(path.sep)
+      .join("/");
     await db
       .promise()
       .query(
         "UPDATE file SET name = ?, path_file = ?, url_qr_code = ?, path_pdf = ? WHERE id = ?",
         [
           fileName,
-          `uploads/${newFileRelativePath}`, // Utilisation de /
+          newFileRelativePath, // store relative path as-is (already relative to project root)
           fileUrl,
           pdfRelativePath,
           fileId,

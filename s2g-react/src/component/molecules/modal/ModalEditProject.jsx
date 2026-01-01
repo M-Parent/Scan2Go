@@ -117,6 +117,11 @@ export function ModalEditProject({
           for="projectImage"
           onChange={handleImageChange}
           ref={fileInputRef}
+          initialUrl={
+            editedProject.project_image
+              ? `/${editedProject.project_image}`
+              : null
+          }
         />
       </div>
       {error && <div className="error-message">{error}</div>}

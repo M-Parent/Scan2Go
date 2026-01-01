@@ -117,7 +117,7 @@ export function Home() {
 
       {projects.length > 0 ? ( // Simplified conditional rendering
         <ProjectGlass projects={projects}>
-          <div className="lg:flex lg:justify-around justify-center py-6 overflow-auto h-full scrollbar-custom">
+          <div className="lg:flex lg:justify-around justify-center py-6 overflow-x-hidden overflow-y-auto h-full scrollbar-custom">
             <div className="grid justify-center items-center xl:grid-cols-3 md:gap-12 gap-8">
               <button
                 className="rounded-3xl"

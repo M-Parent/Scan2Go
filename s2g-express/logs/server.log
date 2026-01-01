@@ -1,146 +1,308 @@
-2025-03-02 15:29:10 info: Server running on Port : 6301
-2025-03-02 15:29:10 info: Connecté à la base de données MySQL!
-2025-03-02 15:29:10 info: Table "project" créée ou déjà existante.
-2025-03-02 15:29:10 info: Table "section" créée ou déjà existante.
-2025-03-02 15:29:10 info: Table "file" créée ou déjà existante.
-2025-03-02 15:29:10 info: Table "tag" créée ou déjà existante.
-2025-03-02 15:29:53 info: Section created: ID = 132, section name: "QGET" for project name: "TAK", Created at: Sun Mar 02 2025 20:29:53 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:30:14 info: File uploaded: ID="222", File name: "9TAC", In Section: "QGET", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 20:30:13 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:30:29 info: Section created: ID = 133, section name: "1R22R" for project name: "TAK", Created at: Sun Mar 02 2025 20:30:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:30:29 info: Section created: ID = 134, section name: "2R22R" for project name: "TAK", Created at: Sun Mar 02 2025 20:30:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:30:41 info: File uploaded: ID="223", File name: "T4", In Section: "1R22R", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 20:30:41 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:30:50 info: File uploaded: ID="224", File name: "G3", In Section: "2R22R", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 20:30:50 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:31:42 info: File deleted: ID="224", File name: "G3", Path file: "uploads\TAK\2R22R\G3\test123.zip", Path pdf: "uploads\TAK\2R22R\G3\G3_qr.pdf", In Section: "2R22R", Of Project: "TAK", Deleted At: "Sun Mar 02 2025 20:30:50 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:31:46 info: Section deleted: ID = 134, section name: "2R22R" for project name: "TAK", deleted at: Sun Mar 02 2025 20:30:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:32:18 info: Section name changed - Old Name: "QGET", New Name: "QGET2", for project: "TAK", Updated at: Sun Mar 02 2025 20:29:53 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:37:42 info: Fermeture du serveur...
-2025-03-02 15:37:45 info: Server running on Port : 6301
-2025-03-02 15:37:45 info: Connecté à la base de données MySQL!
-2025-03-02 15:37:45 info: Table "project" créée ou déjà existante.
-2025-03-02 15:37:45 info: Table "section" créée ou déjà existante.
-2025-03-02 15:37:45 info: Table "file" créée ou déjà existante.
-2025-03-02 15:37:46 info: Table "tag" créée ou déjà existante.
-2025-03-02 15:37:53 info: Updated file paths for file ID 222 - Old path: TAK/QGET2/, New path: TAK/QGET/
-2025-03-02 15:37:53 info: Section name changed - Old Name: "QGET2", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:32:18 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:38:07 info: Updated file paths for file ID 222 - Old path: TAK/QGET/, New path: TAK/QGET2/
-2025-03-02 15:38:07 info: Section name changed - Old Name: "QGET", New Name: "QGET2", for project: "TAK", Updated at: Sun Mar 02 2025 20:37:53 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:42:33 info: Fermeture du serveur...
-2025-03-02 15:42:36 info: Server running on Port : 6301
-2025-03-02 15:42:36 info: Connecté à la base de données MySQL!
-2025-03-02 15:42:36 info: Table "project" créée ou déjà existante.
-2025-03-02 15:42:36 info: Table "section" créée ou déjà existante.
-2025-03-02 15:42:36 info: Table "file" créée ou déjà existante.
-2025-03-02 15:42:36 info: Table "tag" créée ou déjà existante.
-2025-03-02 15:42:50 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET2\, New path: uploads\TAK\QGET\
-2025-03-02 15:42:50 info: Section name changed - Old Name: "QGET2", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:38:07 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:43:16 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET2\
-2025-03-02 15:43:16 info: Section name changed - Old Name: "QGET", New Name: "QGET2", for project: "TAK", Updated at: Sun Mar 02 2025 20:42:50 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:43:29 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET2\, New path: uploads\TAK\QGET\
-2025-03-02 15:43:29 info: Section name changed - Old Name: "QGET2", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:43:16 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:45:09 info: Fermeture du serveur...
-2025-03-02 15:45:12 info: Server running on Port : 6301
-2025-03-02 15:45:12 info: Connecté à la base de données MySQL!
-2025-03-02 15:45:12 info: Table "project" créée ou déjà existante.
-2025-03-02 15:45:12 info: Table "section" créée ou déjà existante.
-2025-03-02 15:45:12 info: Table "file" créée ou déjà existante.
-2025-03-02 15:45:12 info: Table "tag" créée ou déjà existante.
-2025-03-02 15:45:15 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET2\
-2025-03-02 15:45:15 info: Section name changed - Old Name: "QGET", New Name: "QGET2", for project: "TAK", Updated at: Sun Mar 02 2025 20:43:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:45:28 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET2\, New path: uploads\TAK\QGET\
-2025-03-02 15:45:28 info: Section name changed - Old Name: "QGET2", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:45:15 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:45:41 info: Section created: ID = 135, section name: "QGET" for project name: "Sitaware", Created at: Sun Mar 02 2025 20:45:41 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:45:53 info: File uploaded: ID="225", File name: "test", In Section: "QGET", of Project: "Sitaware", Uploaded At: "Sun Mar 02 2025 20:45:52 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:46:05 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET2\
-2025-03-02 15:46:05 info: Updated file paths for file ID 225 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET2\
-2025-03-02 15:46:05 info: Section name changed - Old Name: "QGET", New Name: "QGET2", for project: "TAK", Updated at: Sun Mar 02 2025 20:45:28 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:46:51 info: Section deleted: ID = 135, section name: "QGET" for project name: "Sitaware", deleted at: Sun Mar 02 2025 20:45:41 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:46:56 info: Section created: ID = 136, section name: "QGET" for project name: "Sitaware", Created at: Sun Mar 02 2025 20:46:56 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:47:03 info: File uploaded: ID="226", File name: "test", In Section: "QGET", of Project: "Sitaware", Uploaded At: "Sun Mar 02 2025 20:47:03 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:48:26 info: Section deleted: ID = 136, section name: "QGET" for project name: "Sitaware", deleted at: Sun Mar 02 2025 20:46:56 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:48:55 info: File deleted: ID="225", File name: "test", Path file: "uploads\Sitaware\QGET\test\test123.zip", Path pdf: "uploads\Sitaware\QGET\test\test_qr.pdf", In Section: "QGET2", Of Project: "TAK", Deleted At: "Sun Mar 02 2025 20:45:52 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:49:10 info: File uploaded: ID="227", File name: "test", In Section: "QGET2", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 20:49:09 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:49:27 info: Section created: ID = 137, section name: "QGET" for project name: "Sitaware", Created at: Sun Mar 02 2025 20:49:27 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:49:42 info: File uploaded: ID="228", File name: "TESTSI", In Section: "QGET", of Project: "Sitaware", Uploaded At: "Sun Mar 02 2025 20:49:42 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:49:59 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET2\, New path: uploads\TAK\QGET\
-2025-03-02 15:49:59 info: Updated file paths for file ID 227 - Old path: uploads\TAK\QGET2\, New path: uploads\TAK\QGET\
-2025-03-02 15:49:59 info: Section name changed - Old Name: "QGET2", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:46:05 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:50:23 info: Updated file paths for file ID 228 - Old path: uploads\Sitaware\QGET\, New path: uploads\Sitaware\QGET12\
-2025-03-02 15:50:23 info: Section name changed - Old Name: "QGET", New Name: "QGET12", for project: "Sitaware", Updated at: Sun Mar 02 2025 20:49:27 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:50:44 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET12\
-2025-03-02 15:50:44 info: Updated file paths for file ID 227 - Old path: uploads\TAK\QGET\, New path: uploads\TAK\QGET12\
-2025-03-02 15:50:44 info: Section name changed - Old Name: "QGET", New Name: "QGET12", for project: "TAK", Updated at: Sun Mar 02 2025 20:49:59 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:51:00 info: File uploaded: ID="229", File name: "SITAK", In Section: "QGET12", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 20:51:00 GMT-0500 (Eastern Standard Time)"
-2025-03-02 15:51:12 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET12\, New path: uploads\TAK\QGET1\
-2025-03-02 15:51:12 info: Updated file paths for file ID 227 - Old path: uploads\TAK\QGET12\, New path: uploads\TAK\QGET1\
-2025-03-02 15:51:12 info: Updated file paths for file ID 229 - Old path: uploads\TAK\QGET12\, New path: uploads\TAK\QGET1\
-2025-03-02 15:51:12 info: Section name changed - Old Name: "QGET12", New Name: "QGET1", for project: "TAK", Updated at: Sun Mar 02 2025 20:50:44 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:51:23 info: Updated file paths for file ID 222 - Old path: uploads\TAK\QGET1\, New path: uploads\TAK\QGET\
-2025-03-02 15:51:23 info: Updated file paths for file ID 227 - Old path: uploads\TAK\QGET1\, New path: uploads\TAK\QGET\
-2025-03-02 15:51:23 info: Updated file paths for file ID 229 - Old path: uploads\TAK\QGET1\, New path: uploads\TAK\QGET\
-2025-03-02 15:51:23 info: Section name changed - Old Name: "QGET1", New Name: "QGET", for project: "TAK", Updated at: Sun Mar 02 2025 20:51:12 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:51:29 info: Updated file paths for file ID 228 - Old path: uploads\Sitaware\QGET12\, New path: uploads\Sitaware\QGET\
-2025-03-02 15:51:29 info: Section name changed - Old Name: "QGET12", New Name: "QGET", for project: "Sitaware", Updated at: Sun Mar 02 2025 20:50:23 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:52:11 info: Section deleted: ID = 132, section name: "QGET" for project name: "TAK", deleted at: Sun Mar 02 2025 20:51:23 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:52:13 info: Section deleted: ID = 133, section name: "1R22R" for project name: "TAK", deleted at: Sun Mar 02 2025 20:30:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 15:53:30 info: Section deleted: ID = 137, section name: "QGET" for project name: "Sitaware", deleted at: Sun Mar 02 2025 20:51:29 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:18:44 info: Project deleted: ID=167, Name="TAK", Deleted At=Sun Mar 02 2025 19:16:08 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:18:44 info: Image deleted:
-2025-03-02 16:18:44 info: Folder deleted:
-2025-03-02 16:18:53 info: Project deleted: ID=168, Name="Sitaware", Deleted At=Sun Mar 02 2025 20:09:08 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:18:53 info: Image deleted:
-2025-03-02 16:18:53 info: Folder deleted:
-2025-03-02 16:19:02 info: Project created: ID=169, Name="TAK", Image Path="uploads/project_img/projectImage-1740950342124-610234220.png", Created At=Sun Mar 02 2025 21:19:02 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:22:12 info: Project deleted: ID=169, Name="TAK", Deleted At=Sun Mar 02 2025 21:19:02 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:22:12 info: Image deleted:
-2025-03-02 16:22:12 info: Folder deleted:
-2025-03-02 16:39:08 info: Fermeture du serveur...
-2025-03-02 16:39:31 info: Server running on Port : 6301
-2025-03-02 16:39:31 info: Connecté à la base de données MySQL!
-2025-03-02 16:39:31 info: Table "project" créée ou déjà existante.
-2025-03-02 16:39:31 info: Table "section" créée ou déjà existante.
-2025-03-02 16:39:31 info: Table "file" créée ou déjà existante.
-2025-03-02 16:39:31 info: Table "tag" créée ou déjà existante.
-2025-03-02 16:45:58 info: Project created: ID=170, Name="TAK", Image Path="uploads/project_img/projectImage-1740951958007-972970367.png", Created At=Sun Mar 02 2025 21:45:57 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:46:03 info: Project deleted: ID=170, Name="TAK", Deleted At=Sun Mar 02 2025 21:45:57 GMT-0500 (Eastern Standard Time)
-2025-03-02 16:46:03 info: Image deleted:
-2025-03-02 16:46:03 info: Folder deleted:
-2025-03-02 17:08:54 info: Project created: ID=171, Name="TAK", Image Path="uploads/project_img/projectImage-1740953334822-222110169.png", Created At=Sun Mar 02 2025 22:08:54 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:11:20 info: Fermeture du serveur...
-2025-03-02 17:11:24 info: Server running on Port : 6301
-2025-03-02 17:11:24 info: Connecté à la base de données MySQL!
-2025-03-02 17:11:24 info: Table "project" créée ou déjà existante.
-2025-03-02 17:11:24 info: Table "section" créée ou déjà existante.
-2025-03-02 17:11:24 info: Table "file" créée ou déjà existante.
-2025-03-02 17:11:24 info: Table "tag" créée ou déjà existante.
-2025-03-02 17:37:13 info: Section created: ID = 138, section name: "test" for project name: "TAK", Created at: Sun Mar 02 2025 22:37:13 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:37:28 info: File uploaded: ID="230", File name: "test", In Section: "test", of Project: "TAK", Uploaded At: "Sun Mar 02 2025 22:37:28 GMT-0500 (Eastern Standard Time)"
-2025-03-02 17:37:41 info: File deleted: ID="230", File name: "test", Path file: "uploads\TAK\test\test\test (2).zip", Path pdf: "uploads\TAK\test\test\test_qr.pdf", In Section: "test", Of Project: "TAK", Deleted At: "Sun Mar 02 2025 22:37:28 GMT-0500 (Eastern Standard Time)"
-2025-03-02 17:37:46 info: Project deleted: ID=171, Name="TAK", Deleted At=Sun Mar 02 2025 22:08:54 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:37:46 info: Image deleted:
-2025-03-02 17:37:46 info: Folder deleted:
-2025-03-02 17:40:02 info: Project created: ID=172, Name="TAK", Image Path="uploads/project_img/projectImage-1740955202442-138054417.webp", Created At=Sun Mar 02 2025 22:40:02 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:43:05 info: Project deleted: ID=172, Name="TAK", Deleted At=Sun Mar 02 2025 22:40:02 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:43:05 info: Image deleted:
-2025-03-02 17:43:05 info: Folder deleted:
-2025-03-02 17:43:46 info: Project created: ID=173, Name="TAK", Image Path="uploads/project_img/projectImage-1740955426453-95573242.png", Created At=Sun Mar 02 2025 22:43:46 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:43:55 info: Project deleted: ID=173, Name="TAK", Deleted At=Sun Mar 02 2025 22:43:46 GMT-0500 (Eastern Standard Time)
-2025-03-02 17:43:55 info: Image deleted:
-2025-03-02 17:43:55 info: Folder deleted:
-2025-03-02 17:45:29 info: Fermeture du serveur...
-2025-03-03 15:43:52 info: Server running on Port : 6301
-2025-03-03 15:43:52 info: Connecté à la base de données MySQL!
-2025-03-03 15:43:52 info: Table "project" créée ou déjà existante.
-2025-03-03 15:43:52 info: Table "section" créée ou déjà existante.
-2025-03-03 15:43:52 info: Table "file" créée ou déjà existante.
-2025-03-03 15:43:52 info: Table "tag" créée ou déjà existante.
-2025-03-03 17:59:57 info: Project created: ID=174, Name="TAK", Image Path="uploads/project_img/projectImage-1741042797418-452410477.png", Created At=Mon Mar 03 2025 22:59:57 GMT-0500 (Eastern Standard Time)
-2025-03-03 18:03:57 info: Project deleted: ID=174, Name="TAK", Deleted At=Mon Mar 03 2025 22:59:57 GMT-0500 (Eastern Standard Time)
-2025-03-03 18:03:57 info: Image deleted:
-2025-03-03 18:03:57 info: Folder deleted:
-2025-03-03 18:04:02 info: Project created: ID=175, Name="TAK", Image Path="uploads/project_img/projectImage-1741043042938-113617044.png", Created At=Mon Mar 03 2025 23:04:02 GMT-0500 (Eastern Standard Time)
-2025-03-03 18:04:07 info: Section created: ID = 139, section name: "test" for project name: "TAK", Created at: Mon Mar 03 2025 23:04:06 GMT-0500 (Eastern Standard Time)
-2025-03-03 18:04:20 info: File uploaded: ID="231", File name: "test", In Section: "test", of Project: "TAK", Uploaded At: "Mon Mar 03 2025 23:04:20 GMT-0500 (Eastern Standard Time)"
-2025-03-03 18:08:07 info: Project deleted: ID=175, Name="TAK", Deleted At=Mon Mar 03 2025 23:04:02 GMT-0500 (Eastern Standard Time)
-2025-03-03 18:08:07 info: Image deleted:
-2025-03-03 18:08:07 info: Folder deleted:
-2025-03-03 18:08:35 info: Fermeture du serveur...
+2025-12-31 20:10:15 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 20:10:15 info: Server running on Port : 6301
+2025-12-31 20:10:15 info: Postgres connection OK
+2025-12-31 20:10:15 info: Table "project" créée ou déjà existante.
+2025-12-31 20:10:15 info: Table "section" créée ou déjà existante.
+2025-12-31 20:10:15 info: Table "file" créée ou déjà existante.
+2025-12-31 20:10:15 info: Table "tag" créée ou déjà existante.
+2025-12-31 20:10:15 info: Database tables ensured (project, section, file, tag)
+2025-12-31 20:10:42 info: Project created: ID=2, Name="test", Image Path="uploads/project_img/projectImage-1767229842917-393245983.png", Created At=Thu Jan 01 2026 01:10:42 GMT-0500 (Eastern Standard Time)
+2025-12-31 20:10:59 info: Image non trouvé
+2025-12-31 20:17:44 info: Fermeture du serveur...
+2025-12-31 20:51:20 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 20:51:20 info: Server running on Port : 6301
+2025-12-31 20:51:20 info: Postgres connection OK
+2025-12-31 20:51:20 info: Table "project" créée ou déjà existante.
+2025-12-31 20:51:20 info: Table "section" créée ou déjà existante.
+2025-12-31 20:51:20 info: Table "file" créée ou déjà existante.
+2025-12-31 20:51:20 info: Table "tag" créée ou déjà existante.
+2025-12-31 20:51:20 info: Database tables ensured (project, section, file, tag)
+2025-12-31 20:58:52 info: Fermeture du serveur...
+2025-12-31 20:59:05 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 20:59:05 info: Server running on Port : 6301
+2025-12-31 20:59:05 info: Postgres connection OK
+2025-12-31 20:59:05 info: Table "project" créée ou déjà existante.
+2025-12-31 20:59:05 info: Table "section" créée ou déjà existante.
+2025-12-31 20:59:05 info: Table "file" créée ou déjà existante.
+2025-12-31 20:59:05 info: Table "tag" créée ou déjà existante.
+2025-12-31 20:59:05 info: Database tables ensured (project, section, file, tag)
+2025-12-31 20:59:31 info: Project name changed - Old: "test", New: "test2", Updated at: Thu Jan 01 2026 01:10:42 GMT-0500 (Eastern Standard Time)
+2025-12-31 20:59:50 info: Project image changed - Old: "uploads/project_img/projectImage-1767229842917-393245983.png", New: "uploads/project_img/projectImage-1767232790498-732192574.webp", Updated at: Thu Jan 01 2026 01:10:42 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:00:04 info: Project name changed - Old: "tak", New: "tak2", Updated at: Thu Jan 01 2026 01:07:43 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:00:16 info: Project created: ID=3, Name="bob", Image Path="uploads/project_img/projectImage-1767232816127-159735739.png", Created At=Thu Jan 01 2026 02:00:16 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:02:03 info: Fermeture du serveur...
+2025-12-31 21:02:06 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:02:06 info: Server running on Port : 6301
+2025-12-31 21:02:06 info: Postgres connection OK
+2025-12-31 21:02:06 info: Table "project" créée ou déjà existante.
+2025-12-31 21:02:06 info: Table "section" créée ou déjà existante.
+2025-12-31 21:02:06 info: Table "file" créée ou déjà existante.
+2025-12-31 21:02:06 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:02:06 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:05:11 info: Section created: ID = 1, section name: "test" for project name: "test2", Created at: Thu Jan 01 2026 02:05:11 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:05:11 info: Section created: ID = 2, section name: "test2" for project name: "test2", Created at: Thu Jan 01 2026 02:05:11 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:05:27 info: File uploaded: ID="1", File name: "test", In Section: "test", of Project: "test2", Uploaded At: "Thu Jan 01 2026 02:05:27 GMT-0500 (Eastern Standard Time)"
+2025-12-31 21:05:42 info: File uploaded: ID="2", File name: "test2", In Section: "test2", of Project: "test2", Uploaded At: "Thu Jan 01 2026 02:05:42 GMT-0500 (Eastern Standard Time)"
+2025-12-31 21:12:09 info: Fermeture du serveur...
+2025-12-31 21:12:11 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:12:11 info: Server running on Port : 6301
+2025-12-31 21:12:12 info: Postgres connection OK
+2025-12-31 21:12:12 info: Table "project" créée ou déjà existante.
+2025-12-31 21:12:12 info: Table "section" créée ou déjà existante.
+2025-12-31 21:12:12 info: Table "file" créée ou déjà existante.
+2025-12-31 21:12:12 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:12:12 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:14:30 info: Fermeture du serveur...
+2025-12-31 21:14:32 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:14:32 info: Server running on Port : 6301
+2025-12-31 21:14:33 info: Postgres connection OK
+2025-12-31 21:14:33 info: Table "project" créée ou déjà existante.
+2025-12-31 21:14:33 info: Table "section" créée ou déjà existante.
+2025-12-31 21:14:33 info: Table "file" créée ou déjà existante.
+2025-12-31 21:14:33 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:14:33 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:14:38 info: File updated: ID="1", Old name: "test", New name: "test2", New Path file: "uploads/test2/test/test2/186522.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test2\test\test2\test2_qr.pdf", In Section: "test", Of Project: "test2"
+2025-12-31 21:16:31 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:16:32 info: Server running on Port : 6301
+2025-12-31 21:16:32 info: Postgres connection OK
+2025-12-31 21:16:32 info: Table "project" créée ou déjà existante.
+2025-12-31 21:16:32 info: Table "section" créée ou déjà existante.
+2025-12-31 21:16:32 info: Table "file" créée ou déjà existante.
+2025-12-31 21:16:32 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:16:32 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:17:02 info: File updated: ID="1", Old name: "test2", New name: "test", New Path file: "uploads/test2/test/test/186522.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test2\test\test\test_qr.pdf", In Section: "test", Of Project: "test2"
+2025-12-31 21:17:15 info: Section created: ID = 3, section name: "test" for project name: "tak2", Created at: Thu Jan 01 2026 02:17:15 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:17:15 info: Section created: ID = 4, section name: "test2" for project name: "tak2", Created at: Thu Jan 01 2026 02:17:15 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:17:36 info: File uploaded: ID="3", File name: "test", In Section: "test", of Project: "tak2", Uploaded At: "Thu Jan 01 2026 02:17:36 GMT-0500 (Eastern Standard Time)"
+2025-12-31 21:46:57 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:46:58 info: Server running on Port : 6301
+2025-12-31 21:46:58 info: Postgres connection OK
+2025-12-31 21:46:58 info: Table "project" créée ou déjà existante.
+2025-12-31 21:46:58 info: Table "section" créée ou déjà existante.
+2025-12-31 21:46:58 info: Table "file" créée ou déjà existante.
+2025-12-31 21:46:58 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:46:58 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:47:13 info: File updated: ID="3", Old name: "test", New name: "test", New Path file: "uploads/test2/test/test/caseServer900.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test2\test\test\test_qr.pdf", In Section: "test", Of Project: "test2"
+2025-12-31 21:51:43 info: Fermeture du serveur...
+2025-12-31 21:51:44 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:51:45 info: Server running on Port : 6301
+2025-12-31 21:51:45 info: Postgres connection OK
+2025-12-31 21:51:45 info: Table "project" créée ou déjà existante.
+2025-12-31 21:51:45 info: Table "section" créée ou déjà existante.
+2025-12-31 21:51:45 info: Table "file" créée ou déjà existante.
+2025-12-31 21:51:45 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:51:45 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:53:23 info: Fermeture du serveur...
+2025-12-31 21:53:25 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:53:26 info: Server running on Port : 6301
+2025-12-31 21:53:26 info: Postgres connection OK
+2025-12-31 21:53:26 info: Table "project" créée ou déjà existante.
+2025-12-31 21:53:26 info: Table "section" créée ou déjà existante.
+2025-12-31 21:53:26 info: Table "file" créée ou déjà existante.
+2025-12-31 21:53:26 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:53:26 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:54:13 info: Fermeture du serveur...
+2025-12-31 21:54:16 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:54:16 info: Server running on Port : 6301
+2025-12-31 21:54:16 info: Postgres connection OK
+2025-12-31 21:54:16 info: Table "project" créée ou déjà existante.
+2025-12-31 21:54:16 info: Table "section" créée ou déjà existante.
+2025-12-31 21:54:16 info: Table "file" créée ou déjà existante.
+2025-12-31 21:54:16 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:54:16 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:55:43 info: Fermeture du serveur...
+2025-12-31 21:55:45 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:55:45 info: Server running on Port : 6301
+2025-12-31 21:55:45 info: Postgres connection OK
+2025-12-31 21:55:45 info: Table "project" créée ou déjà existante.
+2025-12-31 21:55:45 info: Table "section" créée ou déjà existante.
+2025-12-31 21:55:45 info: Table "file" créée ou déjà existante.
+2025-12-31 21:55:45 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:55:45 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:56:36 info: Fermeture du serveur...
+2025-12-31 21:56:39 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:56:39 info: Server running on Port : 6301
+2025-12-31 21:56:39 info: Postgres connection OK
+2025-12-31 21:56:39 info: Table "project" créée ou déjà existante.
+2025-12-31 21:56:39 info: Table "section" créée ou déjà existante.
+2025-12-31 21:56:39 info: Table "file" créée ou déjà existante.
+2025-12-31 21:56:39 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:56:39 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:58:03 info: Fermeture du serveur...
+2025-12-31 21:58:04 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 21:58:05 info: Server running on Port : 6301
+2025-12-31 21:58:05 info: Postgres connection OK
+2025-12-31 21:58:05 info: Table "project" créée ou déjà existante.
+2025-12-31 21:58:05 info: Table "section" créée ou déjà existante.
+2025-12-31 21:58:05 info: Table "file" créée ou déjà existante.
+2025-12-31 21:58:05 info: Table "tag" créée ou déjà existante.
+2025-12-31 21:58:05 info: Database tables ensured (project, section, file, tag)
+2025-12-31 21:59:02 info: Project deleted: ID=2, Name="test2", Deleted At=Thu Jan 01 2026 01:10:42 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:59:02 info: Image deleted:
+2025-12-31 21:59:02 info: Folder deleted:
+2025-12-31 21:59:06 info: Project deleted: ID=1, Name="tak2", Deleted At=Thu Jan 01 2026 01:07:43 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:59:06 info: Image deleted:
+2025-12-31 21:59:06 info: Folder deleted:
+2025-12-31 21:59:09 info: Project deleted: ID=3, Name="bob", Deleted At=Thu Jan 01 2026 02:00:16 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:59:09 info: Image deleted:
+2025-12-31 21:59:09 info: Folder deleted:
+2025-12-31 21:59:21 info: Project created: ID=4, Name="Tak", Image Path="uploads/project_img/projectImage-1767236361008-65032893.webp", Created At=Thu Jan 01 2026 02:59:21 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:59:32 info: Section created: ID = 5, section name: "tak1" for project name: "Tak", Created at: Thu Jan 01 2026 02:59:32 GMT-0500 (Eastern Standard Time)
+2025-12-31 21:59:32 info: Section created: ID = 6, section name: "tak2" for project name: "Tak", Created at: Thu Jan 01 2026 02:59:32 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:00:47 info: Project deleted: ID=4, Name="Tak", Deleted At=Thu Jan 01 2026 02:59:21 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:00:47 info: Image deleted:
+2025-12-31 22:00:47 info: Folder deleted:
+2025-12-31 22:01:40 info: Fermeture du serveur...
+2025-12-31 22:08:02 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 22:08:02 info: Server running on Port : 6301
+2025-12-31 22:08:03 info: Postgres connection OK
+2025-12-31 22:08:03 info: Table "project" créée ou déjà existante.
+2025-12-31 22:08:03 info: Table "section" créée ou déjà existante.
+2025-12-31 22:08:03 info: Table "file" créée ou déjà existante.
+2025-12-31 22:08:03 info: Table "tag" créée ou déjà existante.
+2025-12-31 22:08:03 info: Database tables ensured (project, section, file, tag)
+2025-12-31 22:08:18 info: Project created: ID=5, Name="tak", Image Path="uploads/project_img/projectImage-1767236898331-206441538.png", Created At=Thu Jan 01 2026 03:08:17 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:08:35 info: Section created: ID = 7, section name: "test" for project name: "tak", Created at: Thu Jan 01 2026 03:08:35 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:08:35 info: Section created: ID = 8, section name: "test2" for project name: "tak", Created at: Thu Jan 01 2026 03:08:35 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:09:02 info: File uploaded: ID="4", File name: "test", In Section: "test", of Project: "tak", Uploaded At: "Thu Jan 01 2026 03:09:02 GMT-0500 (Eastern Standard Time)"
+2025-12-31 22:26:40 info: Section deleted: ID = 7, section name: "test" for project name: "tak", deleted at: Thu Jan 01 2026 03:08:35 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:26:43 info: Section deleted: ID = 8, section name: "test2" for project name: "tak", deleted at: Thu Jan 01 2026 03:08:35 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:29:03 info: Initialisation de la connexion PostgreSQL...
+2025-12-31 22:29:03 info: Server running on Port : 6301
+2025-12-31 22:29:03 info: Postgres connection OK
+2025-12-31 22:29:03 info: Table "project" créée ou déjà existante.
+2025-12-31 22:29:03 info: Table "section" créée ou déjà existante.
+2025-12-31 22:29:03 info: Table "file" créée ou déjà existante.
+2025-12-31 22:29:03 info: Table "tag" créée ou déjà existante.
+2025-12-31 22:29:03 info: Database tables ensured (project, section, file, tag)
+2025-12-31 22:31:22 info: Section created: ID = 9, section name: "test" for project name: "tak", Created at: Thu Jan 01 2026 03:31:22 GMT-0500 (Eastern Standard Time)
+2025-12-31 22:31:22 info: Section created: ID = 10, section name: "test2" for project name: "tak", Created at: Thu Jan 01 2026 03:31:22 GMT-0500 (Eastern Standard Time)
+2026-01-01 10:52:53 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 10:52:58 info: Server running on Port : 6301
+2026-01-01 10:52:58 info: Postgres connection OK
+2026-01-01 10:52:58 info: Table "project" créée ou déjà existante.
+2026-01-01 10:52:58 info: Table "section" créée ou déjà existante.
+2026-01-01 10:52:58 info: Table "file" créée ou déjà existante.
+2026-01-01 10:52:58 info: Table "tag" créée ou déjà existante.
+2026-01-01 10:52:58 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:00:56 info: Project image changed - Old: "uploads/project_img/projectImage-1767236898331-206441538.png", New: "uploads/project_img/projectImage-1767283256249-231610489.webp", Updated at: Thu Jan 01 2026 03:08:17 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:02:05 info: File uploaded: ID="5", File name: "test123", In Section: "test", of Project: "tak", Uploaded At: "Thu Jan 01 2026 16:02:04 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:02:20 info: File uploaded: ID="6", File name: "test12345", In Section: "test2", of Project: "tak", Uploaded At: "Thu Jan 01 2026 16:02:18 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:03:13 info: Project files exported: Project ID=5, Project Name="tak", Exported at: 2026-01-01T16:03:13.009Z
+2026-01-01 11:03:40 info: Section files exported: Section ID=9, Section Name="test", Project Name="tak", Exported at: 2026-01-01T16:03:40.543Z
+2026-01-01 11:05:40 info: Fermeture du serveur...
+2026-01-01 11:05:43 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:05:44 info: Server running on Port : 6301
+2026-01-01 11:05:44 info: Postgres connection OK
+2026-01-01 11:05:44 info: Table "project" créée ou déjà existante.
+2026-01-01 11:05:44 info: Table "section" créée ou déjà existante.
+2026-01-01 11:05:44 info: Table "file" créée ou déjà existante.
+2026-01-01 11:05:44 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:05:44 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:05:48 info: Project QR codes exported: Project ID=5, Project Name="tak", Exported at: 2026-01-01T16:05:48.374Z
+2026-01-01 11:13:06 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:13:06 info: Server running on Port : 6301
+2026-01-01 11:13:06 info: Postgres connection OK
+2026-01-01 11:13:06 info: Table "project" créée ou déjà existante.
+2026-01-01 11:13:06 info: Table "section" créée ou déjà existante.
+2026-01-01 11:13:06 info: Table "file" créée ou déjà existante.
+2026-01-01 11:13:06 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:13:06 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:14:46 info: Fermeture du serveur...
+2026-01-01 11:14:54 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:14:54 info: Server running on Port : 6301
+2026-01-01 11:14:54 info: Postgres connection OK
+2026-01-01 11:14:54 info: Table "project" créée ou déjà existante.
+2026-01-01 11:14:54 info: Table "section" créée ou déjà existante.
+2026-01-01 11:14:54 info: Table "file" créée ou déjà existante.
+2026-01-01 11:14:54 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:14:54 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:15:00 info: Project deleted: ID=5, Name="tak", Deleted At=Thu Jan 01 2026 03:08:17 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:15:00 info: Image deleted:
+2026-01-01 11:15:00 info: Folder deleted:
+2026-01-01 11:15:22 info: Project created: ID=6, Name="Tak", Image Path="uploads/project_img/projectImage-1767284122227-170179961.png", Created At=Thu Jan 01 2026 16:15:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:15:34 info: Project created: ID=7, Name="test", Image Path="uploads/project_img/projectImage-1767284134805-423046092.png", Created At=Thu Jan 01 2026 16:15:34 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:15:50 info: Section created: ID = 11, section name: "test" for project name: "Tak", Created at: Thu Jan 01 2026 16:15:48 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:15:50 info: Section created: ID = 12, section name: "test2" for project name: "Tak", Created at: Thu Jan 01 2026 16:15:48 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:16:08 info: File uploaded: ID="7", File name: "bob", In Section: "test", of Project: "Tak", Uploaded At: "Thu Jan 01 2026 16:16:06 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:16:57 info: File uploaded: ID="8", File name: "testwdq", In Section: "test2", of Project: "Tak", Uploaded At: "Thu Jan 01 2026 16:16:56 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:17:22 info: File updated: ID="8", Old name: "testwdq", New name: "testwdq", New Path file: "uploads/Tak/test2/testwdq/littlelink.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\Tak\test2\testwdq\testwdq_qr.pdf", In Section: "test2", Of Project: "Tak"
+2026-01-01 11:19:44 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:19:45 info: Server running on Port : 6301
+2026-01-01 11:19:45 info: Postgres connection OK
+2026-01-01 11:19:45 info: Table "project" créée ou déjà existante.
+2026-01-01 11:19:45 info: Table "section" créée ou déjà existante.
+2026-01-01 11:19:45 info: Table "file" créée ou déjà existante.
+2026-01-01 11:19:45 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:19:45 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:20:56 info: Project deleted: ID=6, Name="Tak", Deleted At=Thu Jan 01 2026 16:15:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:20:56 info: Image deleted:
+2026-01-01 11:20:56 info: Folder deleted:
+2026-01-01 11:21:18 info: Section created: ID = 13, section name: "bob" for project name: "test", Created at: Thu Jan 01 2026 16:21:16 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:21:32 info: File uploaded: ID="9", File name: "bob", In Section: "bob", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:21:31 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:21:44 info: Section created: ID = 14, section name: "test" for project name: "test", Created at: Thu Jan 01 2026 16:21:41 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:22:16 info: Section QR codes exported: Section ID=13, Section Name="bob", Project Name="test", Exported at: 2026-01-01T16:22:16.121Z
+2026-01-01 11:26:32 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:26:32 info: Server running on Port : 6301
+2026-01-01 11:26:32 info: Postgres connection OK
+2026-01-01 11:26:32 info: Table "project" créée ou déjà existante.
+2026-01-01 11:26:32 info: Table "section" créée ou déjà existante.
+2026-01-01 11:26:32 info: Table "file" créée ou déjà existante.
+2026-01-01 11:26:32 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:26:32 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:27:16 info: Project deleted: ID=7, Name="test", Deleted At=Thu Jan 01 2026 16:15:34 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:27:16 info: Image deleted:
+2026-01-01 11:27:16 info: Folder deleted:
+2026-01-01 11:27:24 info: Project created: ID=8, Name="test", Image Path="uploads/project_img/projectImage-1767284844065-671802898.webp", Created At=Thu Jan 01 2026 16:27:22 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:27:31 info: Section created: ID = 15, section name: "test1" for project name: "test", Created at: Thu Jan 01 2026 16:27:30 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:27:35 info: Section created: ID = 16, section name: "test2" for project name: "test", Created at: Thu Jan 01 2026 16:27:34 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:27:52 info: File uploaded: ID="10", File name: "test12", In Section: "test1", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:27:50 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:28:24 info: Ancien dossier supprimé: C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\test1\test12
+2026-01-01 11:28:24 info: Nouveau dossier créé: C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\test1\test12345
+2026-01-01 11:28:24 info: Nouveau fichier uploadé: C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\test1\test12345\caseServer900.png
+2026-01-01 11:28:24 info: File updated: ID="10", Old name: "test12", New name: "test12345", New Path file: "uploads/test/test1/test12345/caseServer900.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\test1\test12345\test12345_qr.pdf", In Section: "test1", Of Project: "test"
+2026-01-01 11:32:50 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:32:50 info: Server running on Port : 6301
+2026-01-01 11:32:50 info: Postgres connection OK
+2026-01-01 11:32:50 info: Table "project" créée ou déjà existante.
+2026-01-01 11:32:50 info: Table "section" créée ou déjà existante.
+2026-01-01 11:32:50 info: Table "file" créée ou déjà existante.
+2026-01-01 11:32:50 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:32:50 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:33:10 info: File updated: ID="10", Old name: "test12345", New name: "test12345", New Path file: "uploads/test/test1/test12345/caseServer900.png", New Path PDF: "C:\Users\paren\Desktop\Scan2Go_v1.0\s2g-express\uploads\test\test1\test12345\test12345_qr.pdf", In Section: "test1", Of Project: "test"
+2026-01-01 11:33:42 info: Project files exported: Project ID=8, Project Name="test", Exported at: 2026-01-01T16:33:42.858Z
+2026-01-01 11:34:06 info: File uploaded: ID="11", File name: "test2", In Section: "test2", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:34:03 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:34:09 info: Project files exported: Project ID=8, Project Name="test", Exported at: 2026-01-01T16:34:09.851Z
+2026-01-01 11:34:24 info: Project QR codes exported: Project ID=8, Project Name="test", Exported at: 2026-01-01T16:34:24.454Z
+2026-01-01 11:36:59 info: Section QR codes exported: Section ID=15, Section Name="test1", Project Name="test", Exported at: 2026-01-01T16:36:59.688Z
+2026-01-01 11:37:29 info: Initialisation de la connexion PostgreSQL...
+2026-01-01 11:37:30 info: Server running on Port : 6301
+2026-01-01 11:37:30 info: Postgres connection OK
+2026-01-01 11:37:30 info: Table "project" créée ou déjà existante.
+2026-01-01 11:37:30 info: Table "section" créée ou déjà existante.
+2026-01-01 11:37:30 info: Table "file" créée ou déjà existante.
+2026-01-01 11:37:30 info: Table "tag" créée ou déjà existante.
+2026-01-01 11:37:30 info: Database tables ensured (project, section, file, tag)
+2026-01-01 11:37:37 info: Project deleted: ID=8, Name="test", Deleted At=Thu Jan 01 2026 16:27:22 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:37:37 info: Image deleted:
+2026-01-01 11:37:37 info: Folder deleted:
+2026-01-01 11:37:44 info: Project created: ID=9, Name="test", Image Path="uploads/project_img/projectImage-1767285464829-400142.png", Created At=Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:37:57 info: Project name changed - Old: "test", New: "test2", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:10 info: Project name changed - Old: "test2", New: "test", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:10 info: Project image changed - Old: "uploads/project_img/projectImage-1767285464829-400142.png", New: "uploads/project_img/projectImage-1767285490385-622900900.webp", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:32 info: Project name changed - Old: "test", New: "test2", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:43 info: Project name changed - Old: "test2", New: "test", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:43 info: Project image changed - Old: "uploads/project_img/projectImage-1767285490385-622900900.webp", New: "uploads/project_img/projectImage-1767285523376-81068342.png", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:38:53 info: Project image changed - Old: "uploads/project_img/projectImage-1767285523376-81068342.png", New: "uploads/project_img/projectImage-1767285533443-797292981.jpg", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:39:04 info: Project image changed - Old: "uploads/project_img/projectImage-1767285533443-797292981.jpg", New: "uploads/project_img/projectImage-1767285544324-430834259.webp", Updated at: Thu Jan 01 2026 16:37:44 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:39:22 info: Section created: ID = 17, section name: "sec1" for project name: "test", Created at: Thu Jan 01 2026 16:39:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:39:22 info: Section created: ID = 18, section name: "sec2" for project name: "test", Created at: Thu Jan 01 2026 16:39:20 GMT-0500 (Eastern Standard Time)
+2026-01-01 11:39:45 info: File uploaded: ID="12", File name: "file1", In Section: "sec1", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:39:43 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:40:04 info: File uploaded: ID="13", File name: "file2", In Section: "sec1", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:40:04 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:40:25 info: File uploaded: ID="14", File name: "file1", In Section: "sec2", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:40:24 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:40:39 info: File uploaded: ID="15", File name: "file2", In Section: "sec2", of Project: "test", Uploaded At: "Thu Jan 01 2026 16:40:36 GMT-0500 (Eastern Standard Time)"
+2026-01-01 11:41:20 info: Project files exported: Project ID=9, Project Name="test", Exported at: 2026-01-01T16:41:20.998Z
+2026-01-01 11:41:38 info: Project QR codes exported: Project ID=9, Project Name="test", Exported at: 2026-01-01T16:41:38.204Z
+2026-01-01 11:42:38 error: Error updating section: oldFilePath is not defined
+2026-01-01 11:42:40 error: Error updating section: oldFilePath is not defined
+2026-01-01 11:46:14 info: Fermeture du serveur...

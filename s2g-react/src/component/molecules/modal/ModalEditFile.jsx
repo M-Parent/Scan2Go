@@ -15,6 +15,8 @@ export function ModalEditFile({
 }) {
   const [fileName, setFileName] = useState(file?.name || "");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [fileLabel, setFileLabel] = useState(file?.name || "No file selected");
   const [tags, setTags] = useState([]);
   const [existingTags, setExistingTags] = useState([]);
   const [tagErrors, setTagErrors] = useState({});
@@ -30,7 +32,20 @@ export function ModalEditFile({
   };
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const f = event.target.files[0];
+    setSelectedFile(f);
+    if (f) {
+      setFileLabel(f.name);
+      if (f.type && f.type.startsWith("image/")) {
+        const url = URL.createObjectURL(f);
+        setFilePreview(url);
+      } else {
+        setFilePreview(null);
+      }
+    } else {
+      setFileLabel(file?.name || "No file selected");
+      setFilePreview(null);
+    }
   };
 
   const handleTagChange = (index, event) => {
@@ -220,19 +235,57 @@ export function ModalEditFile({
           <p className="text-red-500 text-sm">{fileNameError}</p>
         )}
         <div className="my-3">
-          <label
-            htmlFor="projectFile"
-            className="block text-sm font-medium text-white mb-2"
-          >
+          <label className="block text-sm font-medium text-white mb-2">
             Upload File:
           </label>
-          <input
-            type="file"
-            id="projectFile"
-            accept=".zip,.png,.jpg,.jpeg,.swc,.txt"
-            onChange={handleFileChange}
-            className="block w-full rounded-xl bg-transparent border-white border  outline outline-1 -outline-offset-1 placeholder:text-white focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 file:px-2 file:py-1 file:bg-white/30 file:border-transparent file:text-white file: hover:file:bg-white/50 file:rounded-s-xl file:me-3"
-          />
+          <div className="mt-2 flex items-center gap-3">
+            <label className="flex-1">
+              <input
+                type="file"
+                id="projectFile"
+                accept=".zip,.png,.jpg,.jpeg,.swc,.txt"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <div className="w-full flex items-center justify-between px-3 py-2 border rounded-xl cursor-pointer bg-white/5 hover:bg-white/10">
+                <div className="truncate text-sm text-white">{fileLabel}</div>
+                <div className="text-sm text-white bg-white/20 px-3 py-1 rounded-lg">
+                  Browse
+                </div>
+              </div>
+            </label>
+
+            {/* Show either selected preview or existing file (image) */}
+            {filePreview ? (
+              <img
+                src={filePreview}
+                alt="preview"
+                className="w-16 h-16 rounded-md object-cover"
+              />
+            ) : file &&
+              file.path_file &&
+              (file.path_file.endsWith(".png") ||
+                file.path_file.endsWith(".jpg") ||
+                file.path_file.endsWith(".jpeg") ||
+                file.path_file.endsWith(".webp")) ? (
+              <img
+                src={`${API_BASE_URL}/${file.path_file}`}
+                alt={file.name}
+                className="w-16 h-16 rounded-md object-cover"
+              />
+            ) : (
+              <a
+                href={
+                  file?.path_file ? `${API_BASE_URL}/${file.path_file}` : "#"
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-white underline"
+              >
+                Download current file
+              </a>
+            )}
+          </div>
         </div>
 
         {/* Tags Section - Styled */}

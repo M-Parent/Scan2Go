@@ -7,7 +7,7 @@ const fs = require("fs");
 const db = require("../db");
 const logger = require("../logger");
 
-// Configuration de Multer
+// Multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const projectImgFolder = path.join("uploads", "project_img");
@@ -23,12 +23,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Route POST pour la création de projets
+// Create project
 router.post("/", upload.single("projectImage"), (req, res) => {
   const { projectName } = req.body;
   const projectImage = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
   if (!projectName) {
+    if (req.file) fs.unlinkSync(req.file.path);
     return res.status(400).json({ error: "Le nom du projet est requis." });
   }
 
@@ -38,16 +39,14 @@ router.post("/", upload.single("projectImage"), (req, res) => {
     (err, results) => {
       if (err) {
         console.error("Erreur lors de la vérification du nom du projet :", err);
-        return res.status(500).json({
-          error: "Erreur lors de la vérification du nom du projet.",
-        });
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res
+          .status(500)
+          .json({ error: "Erreur lors de la vérification du nom du projet." });
       }
 
-      if (results.length > 0) {
-        // Suppression de l'image uploadée si le nom existe déjà
-        if (req.file) {
-          fs.unlinkSync(req.file.path);
-        }
+      if (results && results.length > 0) {
+        if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({ error: "Ce nom de projet existe déjà." });
       }
 
@@ -57,15 +56,24 @@ router.post("/", upload.single("projectImage"), (req, res) => {
       db.query(
         "INSERT INTO project (project_name, project_image) VALUES (?, ?)",
         [projectName, projectImage],
-        (err, results) => {
+        (err, insertResult) => {
           if (err) {
             console.error("Erreur lors de l'ajout du projet :", err);
+            if (req.file) fs.unlinkSync(req.file.path);
             return res
               .status(500)
               .json({ error: "Erreur lors de l'ajout du projet." });
           }
 
-          const newProjectId = results.insertId;
+          const newProjectId =
+            insertResult && insertResult.insertId
+              ? insertResult.insertId
+              : null;
+          if (!newProjectId) {
+            return res.status(500).json({
+              error: "Impossible de récupérer l'ID du nouveau projet.",
+            });
+          }
 
           db.query(
             "SELECT * FROM project WHERE id = ?",
@@ -84,7 +92,7 @@ router.post("/", upload.single("projectImage"), (req, res) => {
               logger.info(
                 `Project created: ID=${newProject.id}, Name="${newProject.project_name}", Image Path="${newProject.project_image}", Created At=${newProject.created_at}`
               );
-              return res.status(201).json(newProjectResults[0]);
+              return res.status(201).json(newProject);
             }
           );
         }
@@ -92,252 +100,186 @@ router.post("/", upload.single("projectImage"), (req, res) => {
     }
   );
 });
-// GET routes (adjust similarly)
+
+// List projects
 router.get("/", (req, res) => {
   db.query("SELECT * FROM project", (err, results) => {
-    if (err) {
-      /* ... */
-    }
+    if (err) return res.status(500).json({ error: "Erreur serveur" });
     res.status(200).json(results);
   });
 });
 
+// Get single project
 router.get("/:id", (req, res) => {
   const projectId = req.params.id;
   db.query(
     "SELECT * FROM project WHERE id = ?",
     [projectId],
     (err, results) => {
-      if (err) {
-        /* ... */
-      }
-      if (results.length === 0) {
-        /* ... */
-      }
+      if (err) return res.status(500).json({ error: "Erreur serveur" });
+      if (!results || results.length === 0)
+        return res.status(404).json({ error: "Projet introuvable." });
       res.status(200).json(results[0]);
     }
   );
 });
 
-// Route PUT pour la mise à jour des projets
+// Update project - keep existing name/image when not provided
 router.put("/:id", upload.single("projectImage"), (req, res) => {
   const projectId = req.params.id;
   let { projectName } = req.body;
   let newProjectImage = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
   db.beginTransaction((err) => {
-    if (err) {
-      return res.status(500).json({ error: "Erreur transaction." });
-    }
+    if (err) return res.status(500).json({ error: "Erreur transaction." });
 
-    db.query(
-      "SELECT 1 FROM project WHERE project_name = ? AND id != ?",
-      [projectName, projectId],
-      (err, results) => {
-        if (err) {
-          return db.rollback(() =>
-            res.status(500).json({ error: err.message })
-          );
-        }
-        if (results.length > 0) {
-          if (req.file) {
-            fs.unlinkSync(req.file.path);
+    // Check duplicate name (only if provided)
+    const checkNameQuery =
+      "SELECT 1 FROM project WHERE project_name = ? AND id != ?";
+    db.query(checkNameQuery, [projectName || "", projectId], (err, results) => {
+      if (err) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return db.rollback(() =>
+          res
+            .status(500)
+            .json({ error: "Erreur lors de la vérification du nom du projet." })
+        );
+      }
+      if (projectName && results && results.length > 0) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return db.rollback(() =>
+          res.status(400).json({ error: "Ce nom de projet existe déjà." })
+        );
+      }
+
+      // Fetch current project
+      db.query(
+        "SELECT project_name, project_image, updated_at FROM project WHERE id = ?",
+        [projectId],
+        (err, rows) => {
+          if (err || !rows || rows.length === 0) {
+            if (req.file) fs.unlinkSync(req.file.path);
+            return db.rollback(() =>
+              res
+                .status(err ? 500 : 404)
+                .json({ error: err ? err.message : "Projet introuvable." })
+            );
           }
-          return db.rollback(() =>
-            res.status(400).json({ error: "Ce nom de projet existe déjà." })
-          );
-        }
 
-        db.query(
-          "SELECT project_name, project_image, updated_at FROM project WHERE id = ?",
-          [projectId],
-          (err, results) => {
-            if (err || results.length === 0) {
-              return db.rollback(() =>
-                res
-                  .status(err ? 500 : 404)
-                  .json({ error: err ? err.message : "Projet introuvable." })
-              );
-            }
+          const current = rows[0];
+          const currentProjectName = current.project_name;
+          const dbProjectImage = current.project_image;
 
-            let currentProjectName = results[0].project_name;
-            let dbProjectImage = results[0].project_image;
-            let currentUpdatedAt = results[0].updated_at;
+          const finalName =
+            projectName && projectName.trim() !== ""
+              ? projectName.trim()
+              : currentProjectName;
 
-            if (!projectName) projectName = currentProjectName;
+          // If a new image was uploaded, use it; otherwise keep existing image
+          let finalImage = dbProjectImage;
+          if (newProjectImage) {
+            finalImage = newProjectImage;
+          }
 
-            const updateProject = (newProjectImage, callback) => {
-              const sql = `
-                UPDATE project 
-                SET project_name = ?, 
-                    project_image = CASE 
-                        WHEN ? IS NOT NULL THEN ? 
-                        ELSE ?
-                    END
-                WHERE id = ?`;
+          const oldFolderPath = path.join("uploads", currentProjectName);
+          const newFolderPath = path.join("uploads", finalName);
 
-              const imagePathForDB = newProjectImage
-                ? newProjectImage.replace("uploads/", "uploads/")
-                : dbProjectImage;
-
-              db.query(
-                sql,
-                [
-                  projectName,
-                  newProjectImage,
-                  imagePathForDB,
-                  dbProjectImage,
-                  projectId,
-                ],
-                (err, result) => {
-                  if (err) {
-                    return callback(err);
-                  }
-                  callback(null, result);
-                }
-              );
-            };
-
-            const handleImageAndFolder = (callback) => {
-              const oldFolderPath = path.join("uploads", currentProjectName);
-              const newFolderPath = path.join("uploads", projectName);
-
-              if (projectName !== currentProjectName) {
-                fs.access(oldFolderPath, (err) => {
-                  if (err) {
-                    return callback(new Error("Ancien dossier inaccessible."));
-                  }
-
-                  fs.access(
-                    dbProjectImage
-                      .replace("uploads/", "uploads/project_img/")
-                      .split("/")
-                      .slice(0, -1)
-                      .join("/"),
-                    (err) => {
-                      if (err) {
-                        logger.info("Image non trouvé");
-                      }
-
-                      fs.rename(oldFolderPath, newFolderPath, (err) => {
-                        if (err) {
-                          return callback(
-                            new Error("Renommage dossier échoué.")
-                          );
-                        }
-
-                        db.query(
-                          "UPDATE project SET project_image = ? WHERE id = ?",
-                          [
-                            dbProjectImage.replace(
-                              currentProjectName,
-                              projectName
-                            ),
-                            projectId,
-                          ],
-                          (err, result) => {
-                            if (err) {
-                              console.error(
-                                "Erreur lors de la mise à jour du nom du fichier :",
-                                err
-                              );
-                              return callback(err);
-                            }
-                            callback(null);
-                          }
-                        );
-                      });
-                    }
-                  );
-                });
-              } else {
-                callback(null);
-              }
-            };
-
-            const handleDeleteOldImage = (callback) => {
-              if (newProjectImage && dbProjectImage) {
-                const fullOldImagePath = path.join(
-                  "uploads",
-                  "project_img",
-                  dbProjectImage.substring(dbProjectImage.lastIndexOf("/") + 1)
-                );
-                fs.access(fullOldImagePath, (err) => {
-                  if (!err) {
-                    fs.unlink(fullOldImagePath, (err) => {
-                      if (err) {
-                        console.error(
-                          "Erreur suppression ancienne image :",
-                          err
-                        );
-                      }
-                      callback(null);
-                    });
-                  } else {
-                    callback(null);
-                  }
-                });
-              } else {
-                callback(null);
-              }
-            };
-
-            handleDeleteOldImage((err) => {
+          const continueUpdate = () => {
+            const sql =
+              "UPDATE project SET project_name = ?, project_image = ? WHERE id = ?";
+            db.query(sql, [finalName, finalImage, projectId], (err) => {
               if (err) {
+                if (req.file) fs.unlinkSync(req.file.path);
                 return db.rollback(() =>
                   res.status(500).json({ error: err.message })
                 );
               }
 
-              handleImageAndFolder((err) => {
-                if (err) {
-                  return db.rollback(() =>
-                    res.status(500).json({ error: err.message })
-                  );
-                }
+              db.commit((err) => {
+                if (err)
+                  return res.status(500).json({ error: "Erreur commit." });
 
-                updateProject(newProjectImage, (err, result) => {
-                  if (err) {
-                    return db.rollback(() =>
-                      res.status(500).json({ error: err.message })
-                    );
-                  }
+                db.query(
+                  "SELECT * FROM project WHERE id = ?",
+                  [projectId],
+                  (err, updatedRows) => {
+                    if (err)
+                      return res.status(500).json({ error: err.message });
+                    const updatedProject = updatedRows[0];
 
-                  db.commit((err) => {
-                    if (err) {
-                      return res.status(500).json({ error: "Erreur commit." });
+                    // Delete old image file if replaced by new upload
+                    if (newProjectImage && dbProjectImage) {
+                      const fullOldImagePath = path.join(
+                        "uploads",
+                        "project_img",
+                        dbProjectImage.substring(
+                          dbProjectImage.lastIndexOf("/") + 1
+                        )
+                      );
+                      fs.access(fullOldImagePath, (err) => {
+                        if (!err) {
+                          fs.unlink(fullOldImagePath, (err) => {
+                            if (err)
+                              console.error(
+                                "Erreur suppression ancienne image :",
+                                err
+                              );
+                          });
+                        }
+                      });
                     }
-                    db.query(
-                      "SELECT * FROM project WHERE id = ?",
-                      [projectId],
-                      (err, updatedProjectResults) => {
-                        const updatedProject = updatedProjectResults[0];
 
-                        //Log des changements
-                        if (
-                          currentProjectName !== updatedProject.project_name
-                        ) {
-                          logger.info(
-                            `Project name changed - Old: "${currentProjectName}", New: "${updatedProject.project_name}", Updated at: ${updatedProject.updated_at}`
-                          );
-                        }
-                        if (dbProjectImage !== updatedProject.project_image) {
-                          logger.info(
-                            `Project image changed - Old: "${dbProjectImage}", New: "${updatedProject.project_image}", Updated at: ${updatedProject.updated_at}`
-                          );
-                        }
+                    // Log changes
+                    if (currentProjectName !== updatedProject.project_name) {
+                      logger.info(
+                        `Project name changed - Old: "${currentProjectName}", New: "${updatedProject.project_name}", Updated at: ${updatedProject.updated_at}`
+                      );
+                    }
+                    if (dbProjectImage !== updatedProject.project_image) {
+                      logger.info(
+                        `Project image changed - Old: "${dbProjectImage}", New: "${updatedProject.project_image}", Updated at: ${updatedProject.updated_at}`
+                      );
+                    }
 
-                        res.status(200).json(updatedProject);
-                      }
-                    );
-                  });
-                });
+                    return res.status(200).json(updatedProject);
+                  }
+                );
               });
             });
+          };
+
+          // If name changed, try rename folder and adjust image path if needed
+          if (finalName !== currentProjectName) {
+            fs.access(oldFolderPath, (err) => {
+              if (err) {
+                // If old folder doesn't exist, continue update without renaming
+                return continueUpdate();
+              }
+              fs.rename(oldFolderPath, newFolderPath, (err) => {
+                if (err) {
+                  // ignore rename failure, continue update
+                  return continueUpdate();
+                }
+                // If project image contains old folder name, update stored path
+                if (
+                  dbProjectImage &&
+                  dbProjectImage.includes(currentProjectName) &&
+                  !newProjectImage
+                ) {
+                  finalImage = dbProjectImage.replace(
+                    currentProjectName,
+                    finalName
+                  );
+                }
+                continueUpdate();
+              });
+            });
+          } else {
+            continueUpdate();
           }
-        );
-      }
-    );
+        }
+      );
+    });
   });
 });
 
@@ -360,11 +302,25 @@ router.delete("/:id", (req, res) => {
       const projectName = results[0].project_name;
       const projectImage = results[0].project_image;
       const projectFolder = path.join("uploads", projectName);
-      const projectImageToDelete = path.join(
-        "uploads",
-        "project_img",
-        projectImage.substring(projectImage.lastIndexOf("/") + 1)
-      );
+
+      // Compute safe image path to delete (basename supports URLs and relative paths)
+      let projectImageToDelete = null;
+      try {
+        if (projectImage && typeof projectImage === "string") {
+          const imageBase = path.basename(projectImage);
+          if (imageBase) {
+            projectImageToDelete = path.join(
+              __dirname,
+              "..",
+              "uploads",
+              "project_img",
+              imageBase
+            );
+          }
+        }
+      } catch (e) {
+        projectImageToDelete = null;
+      }
 
       // Nouvelle requête pour récupérer les informations du projet avant la suppression
       db.query(
@@ -411,22 +367,24 @@ router.delete("/:id", (req, res) => {
               }
             });
 
-            fs.access(projectImageToDelete, (err) => {
-              if (!err) {
-                fs.unlink(projectImageToDelete, (err) => {
-                  if (err) {
-                    console.error("Error deleting image:", err);
-                  } else {
-                    logger.info("Image deleted:", projectImageToDelete);
-                  }
-                });
-              } else {
-                logger.info(
-                  "Image does not exist or has already been deleted:",
-                  projectImageToDelete
-                );
-              }
-            });
+            if (projectImageToDelete) {
+              fs.access(projectImageToDelete, (err) => {
+                if (!err) {
+                  fs.unlink(projectImageToDelete, (err) => {
+                    if (err) {
+                      console.error("Error deleting image:", err);
+                    } else {
+                      logger.info("Image deleted:", projectImageToDelete);
+                    }
+                  });
+                } else {
+                  logger.info(
+                    "Image does not exist or has already been deleted:",
+                    projectImageToDelete
+                  );
+                }
+              });
+            }
 
             return res.status(204).json();
           });
@@ -547,8 +505,11 @@ router.get("/export-project-qr/:projectId", async (req, res) => {
     const zip = new AdmZip();
 
     for (const file of files) {
-      const filePath = path.join(__dirname, "..", file.path_pdf);
+      // Normaliser le chemin pour Windows (remplacer / par \)
+      const normalizedPath = file.path_pdf.split("/").join(path.sep);
+      const filePath = path.join(__dirname, "..", normalizedPath);
       if (fs.existsSync(filePath)) {
+        // Garder la structure des dossiers dans le ZIP
         const relativePath = path.relative(projectFolder, filePath);
         zip.addLocalFile(filePath, path.dirname(relativePath));
       } else {
@@ -576,36 +537,40 @@ router.get("/export-project-qr/:projectId", async (req, res) => {
   }
 });
 
-router.get("/:projectId/search", (req, res) => {
+router.get("/:projectId/search", async (req, res) => {
   const projectId = req.params.projectId;
-  const searchTerm = req.query.term;
+  const searchTerm = req.query.term || "";
 
-  db.query(
-    `SELECT
-    f.*,
-    s.section_name,
-    p.project_name
-    FROM file f
-    JOIN section s ON f.section_id = s.id
-    JOIN project p ON s.project_id = p.id
-    LEFT JOIN tag t ON f.id = t.file_id
-    WHERE p.id = ? AND (
-    f.name LIKE ? OR
-    s.section_name LIKE ? OR
-    t.tag_name LIKE ?
-)
-GROUP BY f.id`,
-    [projectId, `%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`],
-    (err, results) => {
-      if (err) {
-        console.error("Erreur lors de la recherche de fichiers :", err);
-        return res
-          .status(500)
-          .json({ error: "Erreur lors de la recherche de fichiers." });
-      }
-      res.status(200).json(results);
-    }
-  );
+  try {
+    const sql = `SELECT DISTINCT ON (f.id)
+      f.*,
+      s.section_name,
+      p.project_name
+      FROM file f
+      JOIN section s ON f.section_id = s.id
+      JOIN project p ON s.project_id = p.id
+      LEFT JOIN tag t ON f.id = t.file_id
+      WHERE p.id = ? AND (
+        f.name ILIKE ? OR
+        s.section_name ILIKE ? OR
+        t.tag_name ILIKE ?
+      )
+      ORDER BY f.id`;
+
+    const [results] = await db
+      .promise()
+      .query(sql, [
+        projectId,
+        `%${searchTerm}%`,
+        `%${searchTerm}%`,
+        `%${searchTerm}%`,
+      ]);
+
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Erreur lors de la recherche de fichiers :", err);
+    res.status(500).json({ error: "Erreur lors de la recherche de fichiers." });
+  }
 });
 
 module.exports = router;

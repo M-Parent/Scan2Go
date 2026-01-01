@@ -1,17 +1,34 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-export function SearchBarGlass({ onSearch, projectId }) {
+export function SearchBarGlass({ onSearch, projectId, debounceMs = 300 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const inputRef = useRef(null);
+  const timerRef = useRef(null);
 
   const handleChange = (event) => {
-    setSearchTerm(event.target.value);
+    const value = event.target.value;
+    setSearchTerm(value);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      onSearch(value, projectId);
+    }, debounceMs);
   };
 
+  // Keep submit for accessibility / explicit search
   const handleSubmit = (event) => {
-    event.preventDefault(); // Empêche la soumission par défaut du formulaire
-    onSearch(searchTerm, projectId); // Appelle onSearch avec le searchTerm actuel
+    event.preventDefault();
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    onSearch(searchTerm, projectId);
   };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -30,7 +47,7 @@ export function SearchBarGlass({ onSearch, projectId }) {
           <button type="submit">
             <img
               className="absolute top-[5px] right-[5px] bg-white/30 rounded-full px-3 py-1.5"
-              src="../img/icon/search.svg"
+              src="/img/icon/search.svg"
               alt="Search-icon"
             />
           </button>

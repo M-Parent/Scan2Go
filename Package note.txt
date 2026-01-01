@@ -5,4 +5,4 @@ npm install react router-dom
 
 # EXPRESS
 
-npm install express cors mysql dotenv multer #nodemon
+npm install express cors pg dotenv multer #nodemon

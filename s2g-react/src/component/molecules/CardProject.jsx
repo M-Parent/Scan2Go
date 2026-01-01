@@ -55,20 +55,20 @@ export function CardProject({
         </p>
         <button className="absolute top-3 right-0" onClick={handleButtonClick}>
           <img
-            src="../img/icon/three-dots-vertical.svg"
+            src="/img/icon/three-dots-vertical.svg"
             alt="dots details icon"
           />
         </button>
         {showDropdown && (
           <div
-            className="absolute top-10 right-4 Glassmorphgisme-noHover"
+            className="absolute top-7 right-3 Glassmorphgisme-noHover z-10 whitespace-nowrap"
             onClick={handleButtonClick}
           >
             <ul className="px-2 py-1 divide-y">
               <div className="py-1 ">
                 <li
                   onClick={handleEdit}
-                  className="cursor-pointer px-1.5 py-0.5 hover:bg-black/30 rounded-lg text-sm/6 "
+                  className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
                 >
                   Edit
                 </li>
@@ -76,7 +76,7 @@ export function CardProject({
               <div className="py-1">
                 <li
                   onClick={() => exportProjectFiles(projectId, projectName)}
-                  className="cursor-pointer px-1.5 py-0.5 hover:bg-black/30 rounded-lg text-sm/6"
+                  className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
                 >
                   Export Project
                 </li>
@@ -84,14 +84,14 @@ export function CardProject({
               <div className="py-1">
                 <li
                   onClick={() => exportProjectQrCodes(projectId, projectName)}
-                  className="cursor-pointer px-1.5 py-0.5 hover:bg-black/30 rounded-lg text-sm/6"
+                  className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
                 >
                   Export QR code
                 </li>
               </div>
               <div className="py-1">
                 <li
-                  className="cursor-pointer px-1.5 py-0.5 hover:bg-black/30 rounded-lg text-sm/6 text-red-500"
+                  className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6 text-red-500"
                   onClick={handleDelete}
                 >
                   Delete

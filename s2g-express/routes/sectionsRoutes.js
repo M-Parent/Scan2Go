@@ -6,6 +6,89 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../db");
 const logger = require("../logger");
+const QRCode = require("qrcode");
+const PDFDocument = require("pdfkit");
+const os = require("os");
+
+// Fonction pour obtenir l'IP locale
+function getLocalIPv4() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if ("IPv4" === iface.family && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return "127.0.0.1";
+}
+
+// Fonction pour générer un PDF avec QR code
+function generatePdfWithQrCode(
+  fileUrl,
+  pdfPath,
+  fileName,
+  projectName,
+  sectionName,
+  tags
+) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
+
+    // S'assurer que le dossier existe
+    fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
+
+    doc.pipe(fs.createWriteStream(pdfPath));
+
+    QRCode.toDataURL(fileUrl, { errorCorrectionLevel: "H" }, (err, url) => {
+      if (err) return reject("Erreur lors de la génération du QR code.");
+
+      doc.fontSize(48).font("Helvetica-Bold");
+      const textWidth = doc.widthOfString(fileName);
+      const pageWidth = doc.page.width;
+      const textX = (pageWidth - textWidth) / 2;
+      const textY = 50;
+      doc.text(fileName, textX, textY);
+
+      doc.fontSize(20).font("Helvetica");
+      const subText = `${projectName} / ${sectionName} / ${fileName}`;
+      const subTextWidth = doc.widthOfString(subText);
+      const subTextX = (pageWidth - subTextWidth) / 2;
+      const subTextY = textY + 100;
+      doc.text(subText, subTextX, subTextY);
+
+      if (tags && tags.length > 0) {
+        doc.fontSize(20).font("Helvetica");
+        const tagsText = Array.isArray(tags) ? tags.join(", ") : tags;
+        const tagsTextWidth = doc.widthOfString(tagsText);
+        const tagsTextX = (pageWidth - tagsTextWidth) / 2;
+        const tagsTextY = subTextY + 70;
+        doc.text(tagsText, tagsTextX, tagsTextY);
+      }
+
+      const qrCodeWidth = 250;
+      const qrCodeHeight = 250;
+      const pageHeight = doc.page.height;
+      const x = (pageWidth - qrCodeWidth) / 2;
+      const y = (pageHeight - qrCodeHeight) / 2;
+
+      doc.image(url, x, y, {
+        fit: [qrCodeWidth, qrCodeHeight],
+        align: "center",
+        valign: "center",
+      });
+
+      doc.fontSize(12).font("Helvetica");
+      const urlTextWidth = doc.widthOfString(fileUrl);
+      const urlTextX = (pageWidth - urlTextWidth) / 2;
+      const urlTextY = y + qrCodeHeight + 70;
+      doc.text(fileUrl, urlTextX, urlTextY);
+
+      doc.end();
+      resolve();
+    });
+  });
+}
 
 // Configuration de Multer pour gérer les fichiers
 const storage = multer.diskStorage({
@@ -167,6 +250,14 @@ router.put("/:sectionId", async (req, res) => {
     const projectId = section[0].project_id;
     const sectionUpdatedAt = section[0].updated_at;
 
+    // Si le nom n'a pas changé, ne rien faire
+    if (currentSectionName === newSectionName) {
+      const [updatedSection] = await db
+        .promise()
+        .query("SELECT * FROM section WHERE id = ?", [sectionId]);
+      return res.status(200).json(updatedSection[0]);
+    }
+
     const [project] = await db
       .promise()
       .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
@@ -176,7 +267,7 @@ router.put("/:sectionId", async (req, res) => {
     }
     const projectName = project[0].project_name;
 
-    // 2. Rename the folder
+    // 2. Chemins des dossiers
     const oldFolderPath = path.join(
       __dirname,
       "..",
@@ -192,13 +283,31 @@ router.put("/:sectionId", async (req, res) => {
       newSectionName
     );
 
+    // 3. Renommer le dossier de section
     if (fs.existsSync(oldFolderPath)) {
-      fs.renameSync(oldFolderPath, newFolderPath);
+      // Créer le nouveau dossier
+      fs.mkdirSync(newFolderPath, { recursive: true });
+
+      // Copier tous les sous-dossiers (fichiers) vers le nouveau dossier
+      const items = fs.readdirSync(oldFolderPath);
+      for (const item of items) {
+        const oldItemPath = path.join(oldFolderPath, item);
+        const newItemPath = path.join(newFolderPath, item);
+        if (fs.lstatSync(oldItemPath).isDirectory()) {
+          // Copier le dossier récursivement
+          fs.cpSync(oldItemPath, newItemPath, { recursive: true });
+        } else {
+          fs.copyFileSync(oldItemPath, newItemPath);
+        }
+      }
     } else {
-      logger.warn(`Folder ${oldFolderPath} does not exist. Skipping rename.`);
+      logger.warn(
+        `Folder ${oldFolderPath} does not exist. Creating new folder.`
+      );
+      fs.mkdirSync(newFolderPath, { recursive: true });
     }
 
-    // 3. Update the database
+    // 4. Update the database section name
     const [result] = await db
       .promise()
       .query("UPDATE section SET section_name = ? WHERE id = ?", [
@@ -210,42 +319,78 @@ router.put("/:sectionId", async (req, res) => {
       return res.status(404).json({ error: "Section not found for update." });
     }
 
-    // 4. Update file paths in the database
+    // 5. Update file paths and regenerate PDFs
     const [filesToUpdate] = await db
       .promise()
       .query(
-        "SELECT id, path_file, url_qr_code, path_pdf FROM file WHERE section_id = ?",
+        "SELECT id, name, path_file, url_qr_code, path_pdf FROM file WHERE section_id = ?",
         [sectionId]
       );
 
+    const serverIP = process.env.SERVER_IP || getLocalIPv4();
+    const serverPort = process.env.SERVER_PORT || 6301;
+
     for (const file of filesToUpdate) {
-      // Créer les chemins pour le remplacement
-      const oldFilePath = `uploads\\${projectName}\\${currentSectionName}\\`;
-      const newFilePath = `uploads\\${projectName}\\${newSectionName}\\`;
-      const oldUrlPath = `uploads/${projectName}/${currentSectionName}/`;
-      const newUrlPath = `uploads/${projectName}/${newSectionName}/`;
+      const fileName = file.name;
 
-      // Remplacer les chemins (backslashes pour path_file et path_pdf)
-      const updatedPathFile = file.path_file.replace(oldFilePath, newFilePath);
-      const updatedPathPdf = file.path_pdf.replace(oldFilePath, newFilePath);
+      // Nouveau chemin du fichier
+      const newPathFile = `uploads/${projectName}/${newSectionName}/${fileName}/${path.basename(
+        file.path_file
+      )}`;
 
-      // Remplacer les chemins (forward slashes pour url_qr_code)
-      const updatedUrlQrCode = file.url_qr_code.replace(oldUrlPath, newUrlPath);
+      // Nouveau chemin du PDF
+      const newPathPdf = `uploads/${projectName}/${newSectionName}/${fileName}/${fileName}_qr.pdf`;
+
+      // L'URL QR code reste la même (basée sur l'ID du fichier)
+      const fileUrl = `http://${serverIP}:${serverPort}/api/uploadFile/download-file/${file.id}`;
+
+      // Supprimer l'ancien PDF dans le nouveau dossier (s'il existe)
+      const oldPdfInNewFolder = path.join(
+        newFolderPath,
+        fileName,
+        `${fileName}_qr.pdf`
+      );
+      if (fs.existsSync(oldPdfInNewFolder)) {
+        fs.unlinkSync(oldPdfInNewFolder);
+      }
+
+      // Récupérer les tags du fichier
+      const [tags] = await db
+        .promise()
+        .query("SELECT tag_name FROM tag WHERE file_id = ?", [file.id]);
+      const tagNames = tags.map((t) => t.tag_name);
+
+      // Générer le nouveau PDF
+      const newPdfPath = path.join(__dirname, "..", newPathPdf);
+      await generatePdfWithQrCode(
+        fileUrl,
+        newPdfPath,
+        fileName,
+        projectName,
+        newSectionName,
+        tagNames
+      );
 
       // Mettre à jour la base de données
       await db
         .promise()
         .query(
           "UPDATE file SET path_file = ?, url_qr_code = ?, path_pdf = ? WHERE id = ?",
-          [updatedPathFile, updatedUrlQrCode, updatedPathPdf, file.id]
+          [newPathFile, fileUrl, newPathPdf, file.id]
         );
 
       logger.info(
-        `Updated file paths for file ID ${file.id} - Old path: ${oldFilePath}, New path: ${newFilePath}`
+        `Updated file paths for file ID ${file.id}: ${fileName} - New section: ${newSectionName}`
       );
     }
 
-    // 5. Return the updated section data and log the change
+    // 6. Supprimer l'ancien dossier de section
+    if (fs.existsSync(oldFolderPath) && oldFolderPath !== newFolderPath) {
+      fs.rmSync(oldFolderPath, { recursive: true, force: true });
+      logger.info(`Deleted old section folder: ${oldFolderPath}`);
+    }
+
+    // 7. Return the updated section data and log the change
     const [updatedSection] = await db
       .promise()
       .query("SELECT * FROM section WHERE id = ?", [sectionId]);

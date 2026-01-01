@@ -50,3 +50,25 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 32px;
 }
+
+/* Prevent horizontal page scrolling and ensure glass elements don't overflow */
+html,
+body {
+  overflow-x: hidden;
+}
+
+.Glassmorphgisme,
+.Glassmorphgisme-noHover {
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Keep images inside glass components responsive */
+.Glassmorphgisme img,
+.Glassmorphgisme-noHover img,
+.CardProject img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}

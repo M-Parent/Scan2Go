@@ -44,22 +44,20 @@ export function ModalAddProject({ onCloseModal, onProjectAdded }) {
         setProjectName("");
         setProjectImage(null);
       } else {
+        // Lire le corps une seule fois et tenter d'analyser JSON, sinon afficher le texte brut
         try {
-          // Ajouter un bloc try...catch
-          const errorData = await response.json();
-          setError(errorData.error || "Erreur lors de l'ajout du projet.");
-          console.error("Erreur lors de l'ajout du projet:", errorData);
-        } catch (jsonError) {
-          // Capturer l'erreur si la réponse n'est pas du JSON
-          setError("Erreur lors de l'ajout du projet (erreur serveur)"); // Message d'erreur générique
-          console.error(
-            "Erreur lors de l'ajout du projet (erreur non JSON):",
-            jsonError
-          );
-          console.error(
-            "Réponse du serveur (non JSON):",
-            await response.text()
-          ); // Afficher le contenu de la réponse pour déboguer
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            setError(errorData.error || "Erreur lors de l'ajout du projet.");
+            console.error("Erreur lors de l'ajout du projet:", errorData);
+          } catch (parseError) {
+            setError("Erreur lors de l'ajout du projet (erreur serveur)");
+            console.error("Erreur lors de l'ajout du projet (non-JSON):", text);
+          }
+        } catch (readError) {
+          setError("Erreur lors de l'ajout du projet (lecture réponse)");
+          console.error("Impossible de lire la réponse du serveur:", readError);
         }
       }
     } catch (error) {

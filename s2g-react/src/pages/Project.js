@@ -4,12 +4,13 @@ import { ModalEditProject } from "../component/molecules/modal/ModalEditProject"
 import { Modal } from "../component/molecules/modal/Modal";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AddGlass } from "../component/molecules/glass/AddGlass";
-import { Table } from "../component/organisms/Table";
+import { Table } from "../component/organisms/table";
 import { SearchBarGlass } from "../component/molecules/glass/SearchBarGlass";
 import { ModalAddFile } from "../component/molecules/modal/ModalAddFile";
-import { useParams, useNavigate } from "react-router-dom"; // Import useParams and useNavigate
-import API_BASE_URL from "../api"; // Import your API URL
+import { useParams, useNavigate } from "react-router-dom";
+import API_BASE_URL from "../api";
 import { SearchResultsTable } from "../component/organisms/SearchResultsTable";
+import { DropdownMenu } from "../component/molecules/DropdownMenu";
 
 export const exportProjectFiles = async (projectId, projectName) => {
   try {
@@ -25,13 +26,13 @@ export const exportProjectFiles = async (projectId, projectName) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${projectName}_Project_File.zip`;
+    a.download = `${projectName || "project"}-files.zip`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     a.remove();
+    window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Error exporting project files:", error);
+    console.error("Export project failed", error);
     alert("Failed to export project files.");
   }
 };
@@ -50,39 +51,18 @@ export const exportProjectQrCodes = async (projectId, projectName) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${projectName}_Project_Qr_Code.zip`;
+    a.download = `${projectName || "project"}-qrcodes.zip`;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
     a.remove();
+    window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Error exporting project QR codes:", error);
+    console.error("Export project QR codes failed", error);
     alert("Failed to export project QR codes.");
   }
 };
 
 export function Project() {
-  const { projectId } = useParams(); // Get project ID from URL
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Initialize useNavigate
-
-  const dropdownRef = useRef(null); // Ref for the dropdown container
-  const dropdownRef2 = useRef({}); // Ref pour le deuxième dropdown
-
-  const [projectToEdit, setProjectToEdit] = useState(null); // State for project to edit
-
-  const [sections, setSections] = useState([]); // Store sections data
-  const [sectionCollapse, setSectionCollapse] = useState({}); // Store collapse state for each section
-  const [sectionCount, setSectionCount] = useState(0);
-  const [totalFilesCount, setTotalFilesCount] = useState(0);
-
-  const [showModalAddSection, setShowModalAddSection] = useState(false);
-  const [showModalAddFile, setShowModalAddFile] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showDropdown2, setShowDropdown2] = useState({});
-  const [showModalEditProject, setShowModalEditProject] = useState(false);
   const [showModalEditSection, setShowModalEditSection] = useState(false);
   const [sectionToEdit, setSectionToEdit] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
@@ -91,31 +71,114 @@ export function Project() {
   const [sectionFiles, setSectionFiles] = useState({});
 
   const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [noResultsFound, setNoResultsFound] = useState(false);
+  const [fileTagsMap, setFileTagsMap] = useState({});
 
-  const handleSearch = async (searchTerm, projectId) => {
-    if (!searchTerm.trim()) {
+  const { projectId } = useParams();
+  const navigate = useNavigate();
+
+  const [project, setProject] = useState(null);
+  const [projectToEdit, setProjectToEdit] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [sections, setSections] = useState([]);
+  const [sectionCount, setSectionCount] = useState(0);
+  const [sectionCollapse, setSectionCollapse] = useState({});
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDropdown2, setShowDropdown2] = useState({});
+
+  const dropdownRef = useRef(null);
+  const dropdownRef2 = useRef({});
+
+  const [showModalAddSection, setShowModalAddSection] = useState(false);
+  const [showModalAddFile, setShowModalAddFile] = useState(false);
+  const [showModalEditProject, setShowModalEditProject] = useState(false);
+
+  const [totalFilesCount, setTotalFilesCount] = useState(0);
+
+  const handleSearch = async (searchTerm) => {
+    if (!searchTerm || !searchTerm.trim()) {
       setSearchResults([]);
-      setIsSearching(false);
-      setNoResultsFound(false); // Réinitialisez l'état
+      setNoResultsFound(false);
       return;
     }
 
     try {
-      setIsSearching(true);
-      const response = await fetch(
-        `${API_BASE_URL}/api/projects/${projectId}/search?term=${searchTerm}`
-      );
-      if (!response.ok) {
-        throw new Error("Erreur lors de la recherche");
+      const term = searchTerm.trim().toLowerCase();
+      const results = [];
+
+      const getTagsForFile = async (fileId) => {
+        if (fileTagsMap[fileId]) return fileTagsMap[fileId];
+        try {
+          const resp = await fetch(
+            `${API_BASE_URL}/api/uploadFile/files/${fileId}/tags`
+          );
+          if (!resp.ok) return [];
+          const tags = await resp.json();
+          setFileTagsMap((prev) => ({ ...prev, [fileId]: tags }));
+          return tags;
+        } catch (e) {
+          return [];
+        }
+      };
+
+      // Parcourir toutes les sections
+      for (const section of sections) {
+        const sectionId = section.id;
+        const sectionName = section.section_name || "";
+        const sectionNameLower = sectionName.toLowerCase();
+
+        // Vérifier si le nom de la section correspond à la recherche
+        const sectionMatches = sectionNameLower.includes(term);
+
+        // Récupérer les fichiers de cette section
+        const files = sectionFiles[sectionId] || [];
+
+        for (const file of files) {
+          const fileName = (file.name || "").toString().toLowerCase();
+          let matched = false;
+
+          // Match si le nom de fichier correspond
+          if (fileName.includes(term)) {
+            matched = true;
+          }
+
+          // Match si le nom de section correspond
+          if (sectionMatches) {
+            matched = true;
+          }
+
+          // Match si un tag correspond
+          if (!matched) {
+            const tags = await getTagsForFile(file.id);
+            if (Array.isArray(tags)) {
+              const tagMatch = tags.some((t) =>
+                (t || "").toString().toLowerCase().includes(term)
+              );
+              if (tagMatch) matched = true;
+            }
+          }
+
+          if (matched) {
+            results.push({
+              ...file,
+              section_name: sectionName,
+              project_name: project ? project.project_name : "",
+              project_id: project ? project.id : null,
+              section_id: sectionId,
+            });
+          }
+        }
       }
-      const results = await response.json();
+
       setSearchResults(results);
-      setNoResultsFound(results.length === 0); // Mettez à jour l'état
+      setNoResultsFound(results.length === 0);
     } catch (error) {
-      console.error("Erreur lors de la recherche :", error);
-      alert("Erreur lors de la recherche.");
+      console.error("Erreur lors de la recherche locale :", error);
+      setSearchResults([]);
+      setNoResultsFound(true);
     }
   };
 
@@ -236,17 +299,6 @@ export function Project() {
     setShowDropdown2((prevState) => ({
       ...prevState,
       [section.id]: false, // Close the dropdown for this section
-    }));
-  };
-
-  const handleButtonClick = () => {
-    setShowDropdown(!showDropdown);
-  };
-
-  const handleButtonClick2 = (sectionId) => {
-    setShowDropdown2((prevState) => ({
-      ...prevState,
-      [sectionId]: !prevState[sectionId],
     }));
   };
 
@@ -498,7 +550,7 @@ export function Project() {
   };
 
   return (
-    <>
+    <div>
       {/* Nav back home + Title project */}
       <div className="flex p-6">
         <div className="me-auto">
@@ -535,64 +587,33 @@ export function Project() {
               Total Section:{" "}
               <span className="font-bold ms-2">{sectionCount}</span>
             </p>
-            <div className="relative">
-              <button onClick={handleButtonClick}>
+            <DropdownMenu
+              trigger={
                 <img
-                  src="../img/icon/three-dots-vertical.svg"
+                  src="/img/icon/three-dots-vertical.svg"
                   alt="dots details icon"
-                  onClick={(event) => {
-                    // Add onClick to the image
-                    event.stopPropagation(); // Stop event bubbling
-                    handleButtonClick(); // Call your existing handler
-                  }}
+                  className="cursor-pointer"
                 />
-              </button>
-              {showDropdown && (
-                <div
-                  className="absolute top-7 right-3 Glassmorphgisme-noHover z-0 w-32"
-                  ref={dropdownRef}
-                >
-                  <ul className="px-2 py-1 divide-y">
-                    <div className="py-1 ">
-                      <li
-                        onClick={handleEditProject} // Call handleEditProject
-                        className="cursor-pointer px-1.5 py-0.5 hover:bg-black/30 rounded-lg text-sm/6 "
-                      >
-                        Edit
-                      </li>
-                    </div>
-                    <div className="py-1">
-                      <li
-                        onClick={() =>
-                          exportProjectFiles(project.id, project.project_name)
-                        }
-                        className="cursor-pointer px-1.5 py-0.5  hover:bg-black/30 rounded-lg text-sm/6"
-                      >
-                        Export Project
-                      </li>
-                    </div>
-                    <div className="py-1">
-                      <li
-                        onClick={() =>
-                          exportProjectQrCodes(project.id, project.project_name)
-                        }
-                        className="cursor-pointer px-1.5 py-0.5  hover:bg-black/30 rounded-lg text-sm/6"
-                      >
-                        Export QR code
-                      </li>
-                    </div>
-                    <div className="py-1">
-                      <li
-                        onClick={() => handleDeleteProject(project.id)}
-                        className="cursor-pointer px-1.5 py-0.5  hover:bg-black/30 rounded-lg text-sm/6 text-red-500"
-                      >
-                        Delete
-                      </li>
-                    </div>
-                  </ul>
-                </div>
-              )}
-            </div>
+              }
+              items={[
+                { label: "Edit", onClick: handleEditProject },
+                {
+                  label: "Export Project",
+                  onClick: () =>
+                    exportProjectFiles(project.id, project.project_name),
+                },
+                {
+                  label: "Export QR code",
+                  onClick: () =>
+                    exportProjectQrCodes(project.id, project.project_name),
+                },
+                {
+                  label: "Delete",
+                  onClick: () => handleDeleteProject(project.id),
+                  danger: true,
+                },
+              ]}
+            />
           </div>
           <div className="pb-2.5 ">
             Total Uploaded File:{" "}
@@ -609,9 +630,9 @@ export function Project() {
       {sections.length === 0 ? (
         <>
           {/* AddGlass default view */}
-          <div className="flex justify-center mt-16 lg:mt-48 md:mt-32">
+          <div className="flex justify-center mt-16 lg:mt-48 md:mt-32 overflow-hidden w-full">
             <button
-              className="transition hover:translate-y-1 hover:duration-700 hover:ease-in-out"
+              className="transition transform hover:scale-105 hover:duration-700 hover:ease-in-out"
               onClick={() => setShowModalAddSection(true)}
             >
               <AddGlass />
@@ -648,7 +669,7 @@ export function Project() {
                 className="flex Glassmorphgisme px-3 py-1.5 font-bungee me-auto"
               >
                 <img
-                  src="../img/icon/plus-circle.svg"
+                  src="/img/icon/plus-circle.svg"
                   alt="Plus icon"
                   width={24}
                 />
@@ -657,26 +678,45 @@ export function Project() {
             </div>
           </div>
 
-          {/* Affichage conditionnel de SearchResultsTable */}
-          {isSearching && searchResults.length > 0 && (
+          {/* Affichage conditionnel des résultats de recherche groupés par section */}
+          {searchResults.length > 0 && (
             <div className="overflow-y-auto h-[530px] lg:mx-40 me-4 scrollbar-custom">
               <div className="lg:mx-12 mx-12 mt-4 text-white">
-                <SearchResultsTable
-                  sectionFiles={{
-                    [searchResults[0].section_id]: searchResults,
-                  }}
-                  setSectionFiles={setSectionFiles}
-                  section={{
-                    id: searchResults[0].section_id,
-                    section_name: searchResults[0].section_name,
-                  }}
-                  project={{
-                    id: searchResults[0].project_id,
-                    project_name: searchResults[0].project_name,
-                  }}
-                  fetchSectionFiles={fetchSectionFiles}
-                  setSelectedSection={setSelectedSection}
-                />
+                {/* Grouper les résultats par section */}
+                {Object.entries(
+                  searchResults.reduce((acc, file) => {
+                    const secId = file.section_id;
+                    if (!acc[secId]) {
+                      acc[secId] = {
+                        section_name: file.section_name,
+                        section_id: secId,
+                        files: [],
+                      };
+                    }
+                    acc[secId].files.push(file);
+                    return acc;
+                  }, {})
+                ).map(([secId, group]) => (
+                  <div key={secId} className="mb-8">
+                    <p className="text-2xl mb-3 border-b border-white/30 pb-2">
+                      {group.section_name} :
+                    </p>
+                    <SearchResultsTable
+                      sectionFiles={{ [secId]: group.files }}
+                      setSectionFiles={setSectionFiles}
+                      section={{
+                        id: secId,
+                        section_name: group.section_name,
+                      }}
+                      project={{
+                        id: project?.id,
+                        project_name: project?.project_name,
+                      }}
+                      fetchSectionFiles={fetchSectionFiles}
+                      setSelectedSection={setSelectedSection}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -689,8 +729,8 @@ export function Project() {
             </div>
           )}
 
-          {/* Section */}
-          {!isSearching && (
+          {/* Section - masquer si des résultats de recherche sont affichés */}
+          {searchResults.length === 0 && !noResultsFound && (
             <div className="overflow-y-auto h-[530px] lg:me-40 me-4 scrollbar-custom">
               {sections.map((section) => (
                 <div
@@ -716,7 +756,7 @@ export function Project() {
                         }}
                       >
                         <img
-                          src="../img/icon/chevron-down.svg"
+                          src="/img/icon/chevron-down.svg"
                           alt="Chevron-down icon"
                           width={16}
                         />
@@ -733,83 +773,48 @@ export function Project() {
                             }}
                           >
                             <img
-                              src="../img/icon/upload.svg"
+                              src="/img/icon/upload.svg"
                               alt="Logo upload file"
                               width={20}
                             />
                           </button>
 
-                          <div className="relative">
-                            <button
-                              onClick={() => handleButtonClick2(section.id)}
-                            >
+                          <DropdownMenu
+                            trigger={
                               <img
-                                className="ps-3.5"
-                                src="../img/icon/three-dots-vertical.svg"
+                                className="ps-3.5 cursor-pointer"
+                                src="/img/icon/three-dots-vertical.svg"
                                 alt="dots details icon"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleButtonClick2(section.id);
-                                }}
                               />
-                            </button>
-
-                            {showDropdown2[section.id] && (
-                              <div
-                                className="absolute top-7 right-3 Glassmorphgisme-noHover z-10 w-32"
-                                ref={(el) =>
-                                  (dropdownRef2.current[section.id] = el)
-                                }
-                              >
-                                <ul className="px-2 py-1 divide-y">
-                                  <div className="py-1 ">
-                                    <li
-                                      onClick={() => handleEditSection(section)}
-                                      className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
-                                    >
-                                      Edit
-                                    </li>
-                                  </div>
-                                  <div className="py-1 ">
-                                    <li
-                                      onClick={() =>
-                                        exportSection(
-                                          section.id,
-                                          section.section_name
-                                        )
-                                      }
-                                      className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
-                                    >
-                                      Export Section
-                                    </li>
-                                  </div>
-                                  <div className="py-1 ">
-                                    <li
-                                      onClick={() =>
-                                        exportQrCodes(
-                                          section.id,
-                                          section.section_name
-                                        )
-                                      }
-                                      className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6"
-                                    >
-                                      Export QR code
-                                    </li>
-                                  </div>
-                                  <div className="py-1 ">
-                                    <li
-                                      onClick={() =>
-                                        handleDeleteSection(section.id)
-                                      }
-                                      className="py-1 cursor-pointer px-1.5 hover:bg-black/30 rounded-lg text-sm/6 text-red-500"
-                                    >
-                                      Delete
-                                    </li>
-                                  </div>
-                                </ul>
-                              </div>
-                            )}
-                          </div>
+                            }
+                            items={[
+                              {
+                                label: "Edit",
+                                onClick: () => handleEditSection(section),
+                              },
+                              {
+                                label: "Export Section",
+                                onClick: () =>
+                                  exportSection(
+                                    section.id,
+                                    section.section_name
+                                  ),
+                              },
+                              {
+                                label: "Export QR code",
+                                onClick: () =>
+                                  exportQrCodes(
+                                    section.id,
+                                    section.section_name
+                                  ),
+                              },
+                              {
+                                label: "Delete",
+                                onClick: () => handleDeleteSection(section.id),
+                                danger: true,
+                              },
+                            ]}
+                          />
                         </div>
                       </div>
                     </div>
@@ -896,6 +901,8 @@ export function Project() {
           </Modal>
         </>
       )}
-    </>
+    </div>
   );
 }
+
+export default Project;

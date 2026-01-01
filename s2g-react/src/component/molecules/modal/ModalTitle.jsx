@@ -4,7 +4,7 @@ export function ModalTitle({ onClose, title }) {
       <p className="font-bungee">{title}</p>
       <button onClick={() => onClose()}>
         <img
-          src="../img/icon/x-lg.svg"
+          src="/img/icon/x-lg.svg"
           alt="X icon"
           className="hover:opacity-70"
         />

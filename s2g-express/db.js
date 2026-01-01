@@ -1,43 +1,192 @@
 const logger = require("./logger");
+const path = require("path");
+const { Pool } = require("pg");
 
-require("dotenv").config();
-const mysql = require("mysql2");
-
-// Configuration de la connexion à la base de données
-const db = mysql.createConnection({
-  host: process.env.MYSQL_HOST || "localhost",
-  user: process.env.MYSQL_USER || "scan2go",
-  password: process.env.MYSQL_PASSWORD || "password",
-  database: process.env.MYSQL_DATABASE || "scan2go",
+// Load environment from the repo's DB folder (s2g-DB/.env)
+require("dotenv").config({
+  path: path.join(__dirname, "..", "s2g-DB", ".env"),
 });
 
-// Connection DB log
-db.connect((err) => {
-  if (err) {
-    console.error("Erreur de connexion à la base de données:", err);
-    process.exit(1); // Arrêter l'application en cas d'erreur critique
+const pool = new Pool({
+  host: process.env.POSTGRES_HOST || process.env.DB_HOST || "localhost",
+  // Docker compose maps container 5432 -> host 5433 in this repo, default to 5433 when not set
+  port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT) : 5433,
+  user: process.env.POSTGRES_USER,
+  password:
+    process.env.POSTGRES_PASSWORD !== undefined
+      ? String(process.env.POSTGRES_PASSWORD)
+      : undefined,
+  database: process.env.POSTGRES_DB,
+});
+
+pool.on("error", (err) => {
+  logger.error("Unexpected error on idle Postgres client", err);
+});
+
+logger.info("Initialisation de la connexion PostgreSQL...");
+
+// Try a quick test connection to make auth/port problems obvious early
+(async () => {
+  try {
+    const client = await pool.connect();
+    client.release();
+    logger.info("Postgres connection OK");
+  } catch (err) {
+    logger.error("Postgres connection test failed:", err.message || err);
   }
-  logger.info("Connecté à la base de données MySQL!");
-  createProjectTable();
-  createSectionTable();
-  createFileTable();
-  createTagTable();
-});
+})();
+
+// Helper: convert ? placeholders to $1, $2, ...
+function convertPlaceholders(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => {
+    i += 1;
+    return `$${i}`;
+  });
+}
+
+// Promise-compatible wrapper that mimics mysql2's promise().query API used in the codebase
+async function query(sql, params = []) {
+  const converted = convertPlaceholders(sql);
+  let finalSql = converted;
+  if (
+    /^\s*insert\s+into/i.test(converted) &&
+    !/returning\s+/i.test(converted)
+  ) {
+    finalSql = `${converted} RETURNING id`;
+  }
+
+  const res = await pool.query(finalSql, params);
+
+  if (res.command === "SELECT") {
+    return [res.rows];
+  }
+
+  if (res.command === "INSERT") {
+    const result = {
+      insertId: res.rows && res.rows[0] ? res.rows[0].id : null,
+      affectedRows: res.rowCount,
+    };
+    return [result];
+  }
+
+  const result = { affectedRows: res.rowCount };
+  return [result];
+}
+
+// Expose a `db` object compatible with existing code that calls `db.promise().query(...)`
+const db = {
+  promise: () => ({ query }),
+  pool,
+};
+
+// Callback-compatible query to mimic mysql2's connection.query(sql, params, cb)
+db.query = function (sql, params, cb) {
+  if (typeof params === "function") {
+    cb = params;
+    params = [];
+  }
+  const converted = convertPlaceholders(sql);
+  let finalSql = converted;
+  if (
+    /^\s*insert\s+into/i.test(converted) &&
+    !/returning\s+/i.test(converted)
+  ) {
+    finalSql = `${converted} RETURNING id`;
+  }
+
+  const run = (client) => {
+    client.query(finalSql, params, (err, res) => {
+      if (err) return cb(err);
+
+      if (res.command === "SELECT") {
+        return cb(null, res.rows);
+      }
+
+      if (res.command === "INSERT") {
+        const result = Object.assign([], []);
+        result.insertId = res.rows && res.rows[0] ? res.rows[0].id : null;
+        result.affectedRows = res.rowCount;
+        return cb(null, result);
+      }
+
+      const result = { affectedRows: res.rowCount };
+      return cb(null, result);
+    });
+  };
+
+  // Use transaction client if exists, otherwise use pool
+  if (db._txClient) {
+    run(db._txClient);
+  } else {
+    pool.query(finalSql, params, (err, res) => {
+      if (err) return cb(err);
+
+      if (res.command === "SELECT") {
+        return cb(null, res.rows);
+      }
+
+      if (res.command === "INSERT") {
+        const result = Object.assign([], []);
+        result.insertId = res.rows && res.rows[0] ? res.rows[0].id : null;
+        result.affectedRows = res.rowCount;
+        return cb(null, result);
+      }
+
+      const result = { affectedRows: res.rowCount };
+      return cb(null, result);
+    });
+  }
+};
+
+// Simple transaction helpers to mimic mysql connection.transaction API
+db.beginTransaction = function (cb) {
+  pool.connect((err, client, release) => {
+    if (err) return cb(err);
+    db._txClient = client;
+    db._txRelease = release;
+    client.query("BEGIN", (err) => cb(err));
+  });
+};
+
+db.commit = function (cb) {
+  if (!db._txClient) return cb(new Error("No active transaction"));
+  db._txClient.query("COMMIT", (err) => {
+    try {
+      if (db._txRelease) db._txRelease();
+    } catch (e) {}
+    db._txClient = null;
+    db._txRelease = null;
+    cb(err);
+  });
+};
+
+db.rollback = function (cb) {
+  if (!db._txClient) return cb(new Error("No active transaction"));
+  db._txClient.query("ROLLBACK", (err) => {
+    try {
+      if (db._txRelease) db._txRelease();
+    } catch (e) {}
+    db._txClient = null;
+    db._txRelease = null;
+    cb(err);
+  });
+};
 
 // Create Table MYSQL
 async function createProjectTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS project (
-      id INT AUTO_INCREMENT PRIMARY KEY,
+      id SERIAL PRIMARY KEY,
       project_name VARCHAR(255),
       project_image VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
 
   try {
-    const [results] = await db.promise().query(createTableQuery);
+    await db.promise().query(createTableQuery);
     logger.info('Table "project" créée ou déjà existante.');
   } catch (err) {
     console.error("Erreur lors de la création de la table project:", err);
@@ -47,17 +196,17 @@ async function createProjectTable() {
 async function createSectionTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS section (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      project_id INT,
+      id SERIAL PRIMARY KEY,
+      project_id INTEGER,
       section_name VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE
     );
   `;
 
   try {
-    const [results] = await db.promise().query(createTableQuery);
+    await db.promise().query(createTableQuery);
     logger.info('Table "section" créée ou déjà existante.');
   } catch (err) {
     console.error("Erreur lors de la création de la table section:", err);
@@ -67,20 +216,20 @@ async function createSectionTable() {
 async function createFileTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS file (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      section_id INT,
+      id SERIAL PRIMARY KEY,
+      section_id INTEGER,
       name VARCHAR(255),
       url_qr_code VARCHAR(255),
       path_file VARCHAR(255),
       path_pdf VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (section_id) REFERENCES section(id) ON DELETE CASCADE
     );
   `;
 
   try {
-    const [results] = await db.promise().query(createTableQuery);
+    await db.promise().query(createTableQuery);
     logger.info('Table "file" créée ou déjà existante.');
   } catch (err) {
     console.error("Erreur lors de la création de la table file:", err);
@@ -90,17 +239,17 @@ async function createFileTable() {
 async function createTagTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS tag (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      file_id INT,
+      id SERIAL PRIMARY KEY,
+      file_id INTEGER,
       tag_name VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (file_id) REFERENCES file(id) ON DELETE CASCADE
     );
   `;
 
   try {
-    const [results] = await db.promise().query(createTableQuery);
+    await db.promise().query(createTableQuery);
     logger.info('Table "tag" créée ou déjà existante.');
   } catch (err) {
     console.error("Erreur lors de la création de la table tag:", err);
@@ -109,13 +258,32 @@ async function createTagTable() {
 
 // Fonction pour fermer la connexion (à utiliser plus tard)
 function closeConnection() {
-  db.end((err) => {
+  pool.end((err) => {
     if (err) {
       console.error("Erreur lors de la fermeture de la connexion:", err);
     } else {
-      logger.info("Connexion à la base de données fermée.");
+      logger.info("Connexion à la base de données PostgreSQL fermée.");
     }
   });
 }
+
+// Attach closeConnection to exported db for compatibility
+db.closeConnection = closeConnection;
+
+// Ensure tables exist at startup
+async function initTables() {
+  try {
+    await createProjectTable();
+    await createSectionTable();
+    await createFileTable();
+    await createTagTable();
+    logger.info("Database tables ensured (project, section, file, tag)");
+  } catch (err) {
+    logger.error("Error ensuring database tables:", err.message || err);
+  }
+}
+
+// Call init after definitions
+initTables();
 
 module.exports = db; // Exportez l'objet de connexion pour l'utiliser dans d'autres fichiers
