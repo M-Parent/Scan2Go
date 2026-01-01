@@ -1,0 +1,75 @@
+# Scan2Go All-in-One Dockerfile
+# Contains: Frontend (Nginx) + Backend (Node.js) + PostgreSQL
+FROM ubuntu:22.04
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg2 \
+    lsb-release \
+    supervisor \
+    nginx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Install PostgreSQL 16
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update \
+    && apt-get install -y postgresql-16 postgresql-contrib-16 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directories
+RUN mkdir -p /app/backend /app/frontend /app/uploads /app/logs /run/postgresql
+
+# Copy backend
+COPY s2g-express/package*.json /app/backend/
+WORKDIR /app/backend
+RUN npm ci --only=production
+COPY s2g-express/ /app/backend/
+
+# Copy frontend (pre-built)
+COPY s2g-react/build/ /var/www/html/
+
+# Copy nginx configuration
+COPY nginx/nginx-allinone.conf /etc/nginx/nginx.conf
+
+# Copy supervisor configuration
+COPY supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Set permissions
+RUN chown -R postgres:postgres /run/postgresql \
+    && chown -R www-data:www-data /var/www/html
+
+# Environment variables with defaults
+ENV POSTGRES_DB=scan2go \
+    POSTGRES_USER=scan2go \
+    POSTGRES_PASSWORD=Password123! \
+    SERVER_IP=0.0.0.0 \
+    SERVER_PORT=6301 \
+    FRONTEND_URLS=http://localhost
+
+# Expose ports
+EXPOSE 80 6301 5432
+
+# Volumes
+VOLUME ["/app/uploads", "/app/logs", "/var/lib/postgresql/data"]
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost/api/projects || exit 1
+
+# Start services
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

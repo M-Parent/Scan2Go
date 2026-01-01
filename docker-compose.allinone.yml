@@ -1,0 +1,27 @@
+# Scan2Go - All-in-One Docker Compose
+# Single container with Frontend + Backend + Database
+
+services:
+  scan2go:
+    image: mpmk/scan2go:v1.5
+    container_name: scan2go
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-scan2go}
+      POSTGRES_USER: ${POSTGRES_USER:-scan2go}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost}
+    volumes:
+      - scan2go-uploads:/app/uploads
+      - scan2go-logs:/app/logs
+      - scan2go-db:/var/lib/postgresql/data
+
+volumes:
+  scan2go-uploads:
+    name: scan2go-uploads
+  scan2go-logs:
+    name: scan2go-logs
+  scan2go-db:
+    name: scan2go-db

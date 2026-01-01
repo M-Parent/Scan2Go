@@ -11,8 +11,8 @@
 
 - [Overview](#-overview)
 - [Features](#-features)
-- [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
+- [Quick Start - All-in-One](#-quick-start---all-in-one)
+- [Microservices Deployment](#-microservices-deployment)
 - [Docker Hub Images](#-docker-hub-images)
 - [Environment Variables](#-environment-variables)
 - [Development Setup](#-development-setup)
@@ -44,42 +44,37 @@
 
 ---
 
-## 🏗️ Architecture
+## 🚀 Quick Start - All-in-One
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Port 80)                       │
-│                     Nginx + React                            │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Backend (Port 6301)                        │
-│                   Express.js API                             │
-│                   - REST API                                 │
-│                   - File Management                          │
-│                   - QR Code Generation                       │
-└─────────────────────────────┬───────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Database (Port 5432)                       │
-│                   PostgreSQL 16                              │
-└─────────────────────────────────────────────────────────────┘
+> **Recommended for simple deployments** - Single container with all services included.
+
+### Option 1: Using Docker Hub Image
+
+```bash
+# Pull the all-in-one image
+docker pull mpmk/scan2go:v1.5
+
+# Run the container
+docker run -d \
+  --name scan2go \
+  -p 80:80 \
+  -e POSTGRES_PASSWORD=YourSecurePassword123! \
+  -v scan2go-uploads:/app/uploads \
+  -v scan2go-db:/var/lib/postgresql/data \
+  mpmk/scan2go:v1.5
 ```
 
----
-
-## 🚀 Quick Start
-
-### Using Docker Hub Images (Recommended)
+### Option 2: Using Docker Compose
 
 1. **Create a `.env` file:**
 
 ```env
+# Database
 POSTGRES_DB=scan2go
 POSTGRES_USER=scan2go
 POSTGRES_PASSWORD=YourSecurePassword123!
+
+# Server
 FRONTEND_URLS=http://localhost,http://your-server-ip
 ```
 
@@ -87,6 +82,84 @@ FRONTEND_URLS=http://localhost,http://your-server-ip
 
 ```yaml
 services:
+  scan2go:
+    image: mpmk/scan2go:v1.5
+    container_name: scan2go
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-scan2go}
+      POSTGRES_USER: ${POSTGRES_USER:-scan2go}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost}
+    volumes:
+      - scan2go-uploads:/app/uploads
+      - scan2go-logs:/app/logs
+      - scan2go-db:/var/lib/postgresql/data
+
+volumes:
+  scan2go-uploads:
+  scan2go-logs:
+  scan2go-db:
+```
+
+3. **Start the application:**
+
+```bash
+docker-compose up -d
+```
+
+4. **Access:** http://localhost
+
+---
+
+## 🔧 Microservices Deployment
+
+> **Recommended for production** - Separate containers for better scalability and maintenance.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Frontend (Port 80)                       │
+│                     mpmk/scan2go:frontend-v1.5               │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Backend (Port 6301)                        │
+│                   mpmk/scan2go:backend-v1.5                  │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Database (Port 5432)                       │
+│                   postgres:16                                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Docker Compose for Microservices
+
+1. **Create a `.env` file:**
+
+```env
+# Database Configuration
+POSTGRES_DB=scan2go
+POSTGRES_USER=scan2go
+POSTGRES_PASSWORD=YourSecurePassword123!
+
+# Backend Configuration
+FRONTEND_URLS=http://localhost,http://your-server-ip
+```
+
+2. **Create a `docker-compose.yml` file:**
+
+```yaml
+services:
+  # ============================================
+  # Frontend - React with Nginx
+  # ============================================
   frontend:
     image: mpmk/scan2go:frontend-v1.5
     container_name: s2g-frontend
@@ -98,6 +171,9 @@ services:
     networks:
       - scan2go_network
 
+  # ============================================
+  # Backend - Express.js API
+  # ============================================
   backend:
     image: mpmk/scan2go:backend-v1.5
     container_name: s2g-backend
@@ -120,6 +196,9 @@ services:
     networks:
       - scan2go_network
 
+  # ============================================
+  # Database - PostgreSQL 16
+  # ============================================
   db:
     image: postgres:16
     container_name: s2g-db
@@ -158,31 +237,31 @@ networks:
 docker-compose up -d
 ```
 
-4. **Access the application:**
+4. **Access:**
    - 🌐 **Frontend:** http://localhost
-   - 🔌 **API:** http://localhost/api
+   - 🔌 **API:** http://localhost:6301/api
 
 ---
 
 ## 🐳 Docker Hub Images
 
-| Image          | Tag               | Description               |
-| -------------- | ----------------- | ------------------------- |
-| `mpmk/scan2go` | `frontend-v1.5`   | React Frontend with Nginx |
-| `mpmk/scan2go` | `backend-v1.5`    | Express.js Backend API    |
-| `mpmk/scan2go` | `frontend-latest` | Latest Frontend (→ v1.5)  |
-| `mpmk/scan2go` | `backend-latest`  | Latest Backend (→ v1.5)   |
+| Image          | Tag             | Description                         |
+| -------------- | --------------- | ----------------------------------- |
+| `mpmk/scan2go` | `v1.5`          | 📦 All-in-One (Frontend+Backend+DB) |
+| `mpmk/scan2go` | `latest`        | 📦 Latest All-in-One (→ v1.5)       |
+| `mpmk/scan2go` | `frontend-v1.5` | 🎨 Microservice: React + Nginx      |
+| `mpmk/scan2go` | `backend-v1.5`  | 🖥️ Microservice: Express.js API     |
 
-### Pull Images
+### Pull Commands
 
 ```bash
-# Pull specific version
+# All-in-One (recommended)
+docker pull mpmk/scan2go:v1.5
+docker pull mpmk/scan2go:latest
+
+# Microservices
 docker pull mpmk/scan2go:frontend-v1.5
 docker pull mpmk/scan2go:backend-v1.5
-
-# Pull latest
-docker pull mpmk/scan2go:frontend-latest
-docker pull mpmk/scan2go:backend-latest
 ```
 
 ---
