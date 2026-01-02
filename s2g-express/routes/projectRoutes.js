@@ -184,6 +184,55 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
           const oldFolderPath = path.join("uploads", currentProjectName);
           const newFolderPath = path.join("uploads", finalName);
 
+          // Function to update file paths in database when project name changes
+          const updateFilePaths = (oldName, newName, callback) => {
+            // Get all sections for this project
+            db.query(
+              "SELECT id FROM section WHERE project_id = ?",
+              [projectId],
+              (err, sections) => {
+                if (err || !sections || sections.length === 0) {
+                  return callback(); // No sections, continue
+                }
+
+                const sectionIds = sections.map((s) => s.id);
+
+                // Update path_file and path_pdf for all files in these sections
+                const updateSql = `
+                  UPDATE file 
+                  SET 
+                    path_file = REPLACE(path_file, ?, ?),
+                    path_pdf = REPLACE(path_pdf, ?, ?)
+                  WHERE section_id IN (?)
+                `;
+
+                const oldPathPart = `uploads/${oldName}/`;
+                const newPathPart = `uploads/${newName}/`;
+
+                db.query(
+                  updateSql,
+                  [
+                    oldPathPart,
+                    newPathPart,
+                    oldPathPart,
+                    newPathPart,
+                    sectionIds,
+                  ],
+                  (err, result) => {
+                    if (err) {
+                      console.error("Error updating file paths:", err);
+                    } else if (result && result.affectedRows > 0) {
+                      logger.info(
+                        `Updated ${result.affectedRows} file paths from "${oldName}" to "${newName}"`
+                      );
+                    }
+                    callback();
+                  }
+                );
+              }
+            );
+          };
+
           const continueUpdate = () => {
             const sql =
               "UPDATE project SET project_name = ?, project_image = ? WHERE id = ?";
@@ -252,13 +301,19 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
           if (finalName !== currentProjectName) {
             fs.access(oldFolderPath, (err) => {
               if (err) {
-                // If old folder doesn't exist, continue update without renaming
-                return continueUpdate();
+                // If old folder doesn't exist, still update file paths in DB then continue
+                updateFilePaths(currentProjectName, finalName, () => {
+                  continueUpdate();
+                });
+                return;
               }
               fs.rename(oldFolderPath, newFolderPath, (err) => {
                 if (err) {
-                  // ignore rename failure, continue update
-                  return continueUpdate();
+                  // ignore rename failure, but still try to update DB paths
+                  updateFilePaths(currentProjectName, finalName, () => {
+                    continueUpdate();
+                  });
+                  return;
                 }
                 // If project image contains old folder name, update stored path
                 if (
@@ -271,7 +326,10 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
                     finalName
                   );
                 }
-                continueUpdate();
+                // Update all file paths in database
+                updateFilePaths(currentProjectName, finalName, () => {
+                  continueUpdate();
+                });
               });
             });
           } else {
