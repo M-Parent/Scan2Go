@@ -51,18 +51,17 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/sections", sectionsRoutes);
 app.use("/api/uploadFile", filesRoutes);
 
-// Gestion des erreurs globales (middleware d'erreur)
+// Global error handler middleware
 app.use((err, req, res, next) => {
-  console.error("Erreur globale :", err); // Journalisation de l'erreur
-  res.status(500).json({ error: "Une erreur est survenue." }); // Réponse générique au client
+  console.error("Global error:", err);
+  res.status(500).json({ error: "An error occurred." });
 });
 
-// Arrêt du serveur et fermeture de la connexion à la base de données
+// Server shutdown and database connection cleanup
 process.on("SIGINT", () => {
-  // Ecoute du signal d'interruption (Ctrl+C)
-  logger.info("Fermeture du serveur...");
+  logger.info("Shutting down server...");
   if (typeof db.closeConnection === "function") db.closeConnection();
-  process.exit(0); // Arrêt du processus
+  process.exit(0);
 });
 
 // Démarrage du serveur - Listen on all interfaces (0.0.0.0)

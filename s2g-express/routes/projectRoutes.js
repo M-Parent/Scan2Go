@@ -30,7 +30,7 @@ router.post("/", upload.single("projectImage"), (req, res) => {
 
   if (!projectName) {
     if (req.file) fs.unlinkSync(req.file.path);
-    return res.status(400).json({ error: "Le nom du projet est requis." });
+    return res.status(400).json({ error: "Project name is required." });
   }
 
   db.query(
@@ -38,16 +38,16 @@ router.post("/", upload.single("projectImage"), (req, res) => {
     [projectName],
     (err, results) => {
       if (err) {
-        console.error("Erreur lors de la vérification du nom du projet :", err);
+        console.error("Error verifying project name:", err);
         if (req.file) fs.unlinkSync(req.file.path);
         return res
           .status(500)
-          .json({ error: "Erreur lors de la vérification du nom du projet." });
+          .json({ error: "Error verifying project name." });
       }
 
       if (results && results.length > 0) {
         if (req.file) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ error: "Ce nom de projet existe déjà." });
+        return res.status(400).json({ error: "This project name already exists." });
       }
 
       const projectFolder = path.join("uploads", projectName);
@@ -58,11 +58,11 @@ router.post("/", upload.single("projectImage"), (req, res) => {
         [projectName, projectImage],
         (err, insertResult) => {
           if (err) {
-            console.error("Erreur lors de l'ajout du projet :", err);
+            console.error("Error adding project:", err);
             if (req.file) fs.unlinkSync(req.file.path);
             return res
               .status(500)
-              .json({ error: "Erreur lors de l'ajout du projet." });
+              .json({ error: "Error adding project." });
           }
 
           const newProjectId =
@@ -71,7 +71,7 @@ router.post("/", upload.single("projectImage"), (req, res) => {
               : null;
           if (!newProjectId) {
             return res.status(500).json({
-              error: "Impossible de récupérer l'ID du nouveau projet.",
+              error: "Unable to retrieve new project ID.",
             });
           }
 
@@ -81,11 +81,11 @@ router.post("/", upload.single("projectImage"), (req, res) => {
             (err, newProjectResults) => {
               if (err) {
                 console.error(
-                  "Erreur lors de la récupération du nouveau projet :",
+                  "Error retrieving new project:",
                   err
                 );
                 return res.status(500).json({
-                  error: "Erreur lors de la récupération du nouveau projet.",
+                  error: "Error retrieving new project.",
                 });
               }
               const newProject = newProjectResults[0];
@@ -104,7 +104,7 @@ router.post("/", upload.single("projectImage"), (req, res) => {
 // List projects
 router.get("/", (req, res) => {
   db.query("SELECT * FROM project", (err, results) => {
-    if (err) return res.status(500).json({ error: "Erreur serveur" });
+    if (err) return res.status(500).json({ error: "Server error" });
     res.status(200).json(results);
   });
 });
@@ -116,9 +116,9 @@ router.get("/:id", (req, res) => {
     "SELECT * FROM project WHERE id = ?",
     [projectId],
     (err, results) => {
-      if (err) return res.status(500).json({ error: "Erreur serveur" });
+      if (err) return res.status(500).json({ error: "Server error" });
       if (!results || results.length === 0)
-        return res.status(404).json({ error: "Projet introuvable." });
+        return res.status(404).json({ error: "Project not found." });
       res.status(200).json(results[0]);
     }
   );
@@ -131,7 +131,7 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
   let newProjectImage = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
   db.beginTransaction((err) => {
-    if (err) return res.status(500).json({ error: "Erreur transaction." });
+    if (err) return res.status(500).json({ error: "Transaction error." });
 
     // Check duplicate name (only if provided)
     const checkNameQuery =
@@ -142,13 +142,13 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
         return db.rollback(() =>
           res
             .status(500)
-            .json({ error: "Erreur lors de la vérification du nom du projet." })
+            .json({ error: "Error verifying project name." })
         );
       }
       if (projectName && results && results.length > 0) {
         if (req.file) fs.unlinkSync(req.file.path);
         return db.rollback(() =>
-          res.status(400).json({ error: "Ce nom de projet existe déjà." })
+          res.status(400).json({ error: "This project name already exists." })
         );
       }
 
@@ -162,7 +162,7 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
             return db.rollback(() =>
               res
                 .status(err ? 500 : 404)
-                .json({ error: err ? err.message : "Projet introuvable." })
+                .json({ error: err ? err.message : "Project not found." })
             );
           }
 
@@ -246,7 +246,7 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
 
               db.commit((err) => {
                 if (err)
-                  return res.status(500).json({ error: "Erreur commit." });
+                  return res.status(500).json({ error: "Commit error." });
 
                 db.query(
                   "SELECT * FROM project WHERE id = ?",
@@ -270,7 +270,7 @@ router.put("/:id", upload.single("projectImage"), (req, res) => {
                           fs.unlink(fullOldImagePath, (err) => {
                             if (err)
                               console.error(
-                                "Erreur suppression ancienne image :",
+                                "Error deleting old image:",
                                 err
                               );
                           });
@@ -626,8 +626,8 @@ router.get("/:projectId/search", async (req, res) => {
 
     res.status(200).json(results);
   } catch (err) {
-    console.error("Erreur lors de la recherche de fichiers :", err);
-    res.status(500).json({ error: "Erreur lors de la recherche de fichiers." });
+    console.error("Error searching files:", err);
+    res.status(500).json({ error: "Error searching files." });
   }
 });
 

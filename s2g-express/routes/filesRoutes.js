@@ -62,9 +62,15 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   );
 
   try {
+    // Find section by name AND project name to avoid conflicts with same section names in different projects
     const [sectionResults] = await db
       .promise()
-      .query("SELECT id FROM section WHERE section_name = ?", [sectionName]);
+      .query(
+        `SELECT s.id FROM section s 
+         JOIN project p ON s.project_id = p.id 
+         WHERE s.section_name = ? AND p.project_name = ?`,
+        [sectionName, projectName]
+      );
 
     if (sectionResults.length === 0) {
       return res.status(400).send("Section not found.");
@@ -102,7 +108,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       { errorCorrectionLevel: "H" },
       async (err, url) => {
         if (err) {
-          console.error("Erreur lors de la génération du QR code :", err);
+          console.error("Error generating QR code:", err);
           return;
         }
 

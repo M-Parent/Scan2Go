@@ -176,7 +176,7 @@ export function Project() {
       setSearchResults(results);
       setNoResultsFound(results.length === 0);
     } catch (error) {
-      console.error("Erreur lors de la recherche locale :", error);
+      console.error("Error during local search:", error);
       setSearchResults([]);
       setNoResultsFound(true);
     }

@@ -187,9 +187,9 @@ async function createProjectTable() {
 
   try {
     await db.promise().query(createTableQuery);
-    logger.info('Table "project" créée ou déjà existante.');
+    logger.info('Table "project" created or already exists.');
   } catch (err) {
-    console.error("Erreur lors de la création de la table project:", err);
+    console.error("Error creating project table:", err);
   }
 }
 
@@ -207,9 +207,9 @@ async function createSectionTable() {
 
   try {
     await db.promise().query(createTableQuery);
-    logger.info('Table "section" créée ou déjà existante.');
+    logger.info('Table "section" created or already exists.');
   } catch (err) {
-    console.error("Erreur lors de la création de la table section:", err);
+    console.error("Error creating section table:", err);
   }
 }
 
@@ -230,9 +230,9 @@ async function createFileTable() {
 
   try {
     await db.promise().query(createTableQuery);
-    logger.info('Table "file" créée ou déjà existante.');
+    logger.info('Table "file" created or already exists.');
   } catch (err) {
-    console.error("Erreur lors de la création de la table file:", err);
+    console.error("Error creating file table:", err);
   }
 }
 
@@ -250,9 +250,9 @@ async function createTagTable() {
 
   try {
     await db.promise().query(createTableQuery);
-    logger.info('Table "tag" créée ou déjà existante.');
+    logger.info('Table "tag" created or already exists.');
   } catch (err) {
-    console.error("Erreur lors de la création de la table tag:", err);
+    console.error("Error creating tag table:", err);
   }
 }
 
@@ -260,9 +260,9 @@ async function createTagTable() {
 function closeConnection() {
   pool.end((err) => {
     if (err) {
-      console.error("Erreur lors de la fermeture de la connexion:", err);
+      console.error("Error closing database connection:", err);
     } else {
-      logger.info("Connexion à la base de données PostgreSQL fermée.");
+      logger.info("PostgreSQL database connection closed.");
     }
   });
 }

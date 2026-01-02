@@ -119,7 +119,7 @@ export function ModalEditProject({
           ref={fileInputRef}
           initialUrl={
             editedProject.project_image
-              ? `/${editedProject.project_image}`
+              ? `${API_BASE_URL}/${editedProject.project_image}`
               : null
           }
         />
