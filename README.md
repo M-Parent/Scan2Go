@@ -3,7 +3,6 @@
 > **File Management System with QR Code Access**
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://hub.docker.com/r/mpmk/scan2go)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Max File Size](https://img.shields.io/badge/Max%20File%20Size-10GB-brightgreen)]()
 
 ### 🚀 Supports files up to **10GB** per upload!
