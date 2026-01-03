@@ -205,7 +205,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-scan2go}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
     healthcheck:
       test:
         [
