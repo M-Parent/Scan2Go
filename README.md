@@ -99,11 +99,16 @@ volumes:
 Create a file `.env`:
 
 ```env
+# Database Configuration
 POSTGRES_DB=scan2go
 POSTGRES_USER=scan2go
 POSTGRES_PASSWORD=YourSecurePassword123!
+
+# Server Configuration (REQUIRED)
 FRONTEND_URLS=http://YOUR_SERVER_IP
 ```
+
+> ⚠️ **Required:** Replace `YOUR_SERVER_IP` with your server's IP address or domain name for QR codes to work correctly!
 
 Start:
 
@@ -226,11 +231,16 @@ networks:
 Create a file `.env`:
 
 ```env
+# Database Configuration
 POSTGRES_DB=scan2go
 POSTGRES_USER=scan2go
 POSTGRES_PASSWORD=YourSecurePassword123!
+
+# Server Configuration (REQUIRED)
 FRONTEND_URLS=http://YOUR_SERVER_IP
 ```
+
+> ⚠️ **Required:** Replace `YOUR_SERVER_IP` with your server's IP address or domain name for QR codes to work correctly!
 
 Start:
 
@@ -266,12 +276,45 @@ docker pull mpmk/scan2go:backend-v1.5
 
 ## ⚙️ Environment Variables
 
-| Variable            | Description             | Default            | Required |
-| ------------------- | ----------------------- | ------------------ | -------- |
-| `POSTGRES_PASSWORD` | Database password       | `Password123!`     | ✅       |
-| `POSTGRES_DB`       | Database name           | `scan2go`          | ❌       |
-| `POSTGRES_USER`     | Database user           | `scan2go`          | ❌       |
-| `FRONTEND_URLS`     | Server URL for QR codes | `http://localhost` | ✅       |
+### All-in-One Deployment
+
+| Variable            | Description                       | Default            | Required |
+| ------------------- | --------------------------------- | ------------------ | -------- |
+| `POSTGRES_DB`       | Database name                     | `scan2go`          | ❌       |
+| `POSTGRES_USER`     | Database user                     | `scan2go`          | ❌       |
+| `POSTGRES_PASSWORD` | Database password                 | `Password123!`     | ✅       |
+| `FRONTEND_URLS`     | Server URL for QR code generation | `http://localhost` | ✅       |
+
+### Microservices Deployment
+
+#### Backend Service
+
+| Variable        | Description                                                                       | Default            | Required |
+| --------------- | --------------------------------------------------------------------------------- | ------------------ | -------- |
+| `SERVER_IP`     | IP address the server listens on. `0.0.0.0` = all interfaces (required in Docker) | `0.0.0.0`          | ❌       |
+| `SERVER_PORT`   | Port the Express server runs on                                                   | `6301`             | ❌       |
+| `FRONTEND_URLS` | Server URL for QR code generation (your server's public IP/domain)                | `http://localhost` | ✅       |
+| `DB_HOST`       | PostgreSQL host (use `db` for Docker network)                                     | `localhost`        | ✅       |
+| `DB_PORT`       | PostgreSQL port                                                                   | `5432`             | ❌       |
+| `DB_NAME`       | Database name                                                                     | `scan2go`          | ❌       |
+| `DB_USER`       | Database user                                                                     | `scan2go`          | ❌       |
+| `DB_PASSWORD`   | Database password                                                                 | `Password123!`     | ✅       |
+
+#### Database Service (PostgreSQL)
+
+| Variable            | Description       | Default        | Required |
+| ------------------- | ----------------- | -------------- | -------- |
+| `POSTGRES_DB`       | Database name     | `scan2go`      | ❌       |
+| `POSTGRES_USER`     | Database user     | `scan2go`      | ❌       |
+| `POSTGRES_PASSWORD` | Database password | `Password123!` | ✅       |
+
+### Variable Details
+
+| Variable            | Explanation                                                                                                                                                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SERVER_IP=0.0.0.0` | Tells the Express server to listen on **all network interfaces**. Required in Docker so the container can receive requests from outside. If set to `127.0.0.1`, only connections from inside the container would work.                               |
+| `FRONTEND_URLS`     | Used to generate QR code URLs. When a file is uploaded, the backend uses this URL to create the download link embedded in the QR code. **Must be your server's public IP or domain** (e.g., `http://192.168.1.100` or `http://scan2go.example.com`). |
+| `DB_HOST=db`        | In Docker Compose, services can communicate using their service name. The backend connects to PostgreSQL using `db` as the hostname because that's the service name defined in the compose file.                                                     |
 
 > ⚠️ **Important:** Set `FRONTEND_URLS` to your server's IP or domain for QR codes to work correctly!
 
