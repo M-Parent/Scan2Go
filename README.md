@@ -425,12 +425,6 @@ Scan2Go/
 
 ---
 
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
 <p align="center">
   Made with ❤️ by <strong>MPMK</strong>
 </p>
