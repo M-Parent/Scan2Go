@@ -4,6 +4,9 @@
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://hub.docker.com/r/mpmk/scan2go)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Max File Size](https://img.shields.io/badge/Max%20File%20Size-10GB-brightgreen)]()
+
+### 🚀 Supports files up to **10GB** per upload!
 
 ---
 
@@ -25,7 +28,8 @@
 **Scan2Go** is a modern file management system that allows users to:
 
 - 📤 Upload files and organize them into projects and sections
-- 📱 Generate QR codes for instant file access
+- � **Support for large files up to 10GB**
+- �📱 Generate QR codes for instant file access
 - 📥 Download files individually or as ZIP archives
 - 🏷️ Tag files for easy searching and filtering
 
@@ -33,14 +37,15 @@
 
 ## ✨ Features
 
-| Feature                   | Description                                       |
-| ------------------------- | ------------------------------------------------- |
-| 📁 **Project Management** | Create and organize projects with custom images   |
-| 📂 **Sections**           | Group files into logical sections within projects |
-| 📱 **QR Code Generation** | Auto-generated QR codes for each uploaded file    |
-| 🔍 **Search**             | Search files by name, section, or tags            |
-| 📦 **Bulk Export**        | Export all QR codes or files as ZIP archives      |
-| 🎨 **Modern UI**          | Glassmorphism design with responsive layout       |
+| Feature                    | Description                                       |
+| -------------------------- | ------------------------------------------------- |
+| � **Large File Support**   | Upload files up to **10GB** per file              |
+| �📁 **Project Management** | Create and organize projects with custom images   |
+| 📂 **Sections**            | Group files into logical sections within projects |
+| 📱 **QR Code Generation**  | Auto-generated QR codes for each uploaded file    |
+| 🔍 **Search**              | Search files by name, section, or tags            |
+| 📦 **Bulk Export**         | Export all QR codes or files as ZIP archives      |
+| 🎨 **Modern UI**           | Glassmorphism design with responsive layout       |
 
 ---
 
