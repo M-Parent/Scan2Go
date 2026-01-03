@@ -2,21 +2,22 @@ const logger = require("./logger");
 const path = require("path");
 const { Pool } = require("pg");
 
-// Load environment from the repo's DB folder (s2g-DB/.env)
-require("dotenv").config({
-  path: path.join(__dirname, "..", "s2g-DB", ".env"),
-});
+// Load environment from .env file ONLY if not already set (Docker sets env vars directly)
+// This allows Docker container env vars to take priority
+if (!process.env.DB_HOST && !process.env.POSTGRES_HOST) {
+  require("dotenv").config({
+    path: path.join(__dirname, "..", "s2g-DB", ".env"),
+  });
+}
 
 const pool = new Pool({
-  host: process.env.POSTGRES_HOST || process.env.DB_HOST || "localhost",
-  // Docker compose maps container 5432 -> host 5433 in this repo, default to 5433 when not set
-  port: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT) : 5433,
-  user: process.env.POSTGRES_USER,
-  password:
-    process.env.POSTGRES_PASSWORD !== undefined
-      ? String(process.env.POSTGRES_PASSWORD)
-      : undefined,
-  database: process.env.POSTGRES_DB,
+  host: process.env.DB_HOST || process.env.POSTGRES_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || process.env.POSTGRES_PORT || "5432"),
+  user: process.env.DB_USER || process.env.POSTGRES_USER,
+  password: String(
+    process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || ""
+  ),
+  database: process.env.DB_NAME || process.env.POSTGRES_DB,
 });
 
 pool.on("error", (err) => {
@@ -179,6 +180,7 @@ async function createProjectTable() {
     CREATE TABLE IF NOT EXISTS project (
       id SERIAL PRIMARY KEY,
       project_name VARCHAR(255),
+      folder_name VARCHAR(255),
       project_image VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -187,6 +189,10 @@ async function createProjectTable() {
 
   try {
     await db.promise().query(createTableQuery);
+    // Add folder_name column if it doesn't exist (for existing databases)
+    await db.promise().query(`
+      ALTER TABLE project ADD COLUMN IF NOT EXISTS folder_name VARCHAR(255);
+    `);
     logger.info('Table "project" created or already exists.');
   } catch (err) {
     console.error("Error creating project table:", err);
@@ -199,6 +205,7 @@ async function createSectionTable() {
       id SERIAL PRIMARY KEY,
       project_id INTEGER,
       section_name VARCHAR(255),
+      folder_name VARCHAR(255),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE
@@ -207,6 +214,10 @@ async function createSectionTable() {
 
   try {
     await db.promise().query(createTableQuery);
+    // Add folder_name column if it doesn't exist (for existing databases)
+    await db.promise().query(`
+      ALTER TABLE section ADD COLUMN IF NOT EXISTS folder_name VARCHAR(255);
+    `);
     logger.info('Table "section" created or already exists.');
   } catch (err) {
     console.error("Error creating section table:", err);
@@ -219,6 +230,7 @@ async function createFileTable() {
       id SERIAL PRIMARY KEY,
       section_id INTEGER,
       name VARCHAR(255),
+      folder_name VARCHAR(255),
       url_qr_code VARCHAR(255),
       path_file VARCHAR(255),
       path_pdf VARCHAR(255),
@@ -230,6 +242,10 @@ async function createFileTable() {
 
   try {
     await db.promise().query(createTableQuery);
+    // Add folder_name column if it doesn't exist (for existing databases)
+    await db.promise().query(`
+      ALTER TABLE file ADD COLUMN IF NOT EXISTS folder_name VARCHAR(255);
+    `);
     logger.info('Table "file" created or already exists.');
   } catch (err) {
     console.error("Error creating file table:", err);

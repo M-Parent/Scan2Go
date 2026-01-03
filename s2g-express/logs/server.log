@@ -1,0 +1,16 @@
+2026-01-02 12:57:14 info: Initialisation de la connexion PostgreSQL...
+2026-01-02 12:57:15 info: Server running on 0.0.0.0:6301
+2026-01-02 12:57:15 info: Postgres connection OK
+2026-01-02 12:57:15 info: Table "project" created or already exists.
+2026-01-02 12:57:15 info: Table "section" created or already exists.
+2026-01-02 12:57:15 info: Table "file" created or already exists.
+2026-01-02 12:57:15 info: Table "tag" created or already exists.
+2026-01-02 12:57:15 info: Database tables ensured (project, section, file, tag)
+2026-01-02 12:57:26 info: Project created: ID=25, Name="test", Folder="137d9aa4fa43b68a4f428ad836aa8c05", Image Path="uploads/project_img/projectImage-1767376646662-258970440.png", Created At=Fri Jan 02 2026 17:57:23 GMT-0500 (Eastern Standard Time)
+2026-01-02 12:58:53 info: Project deleted: ID=24, Name="test2", Folder="test2"
+2026-01-02 12:58:56 info: Project deleted: ID=23, Name="test234", Folder="test234"
+2026-01-02 12:59:14 info: Section created: ID = 38, section name: "test", folder: "651b769090a97a20d177c23368ca23bb" for project name: "test", Created at: Fri Jan 02 2026 17:59:11 GMT-0500 (Eastern Standard Time)
+2026-01-02 12:59:20 info: File uploaded: ID="39", File name: "test", Folder: "5abade0d4e3d7719b916cc693dc0f495", In Section: "test", of Project: "test", Uploaded At: "Fri Jan 02 2026 17:59:18 GMT-0500 (Eastern Standard Time)"
+2026-01-02 12:59:53 info: Project name changed - Old: "test", New: "test2", Updated at: Fri Jan 02 2026 17:57:23 GMT-0500 (Eastern Standard Time)
+2026-01-02 13:00:11 info: Section name changed - Old Name: "test", New Name: "test2", for project: "test2"
+2026-01-02 13:06:29 info: Shutting down server...

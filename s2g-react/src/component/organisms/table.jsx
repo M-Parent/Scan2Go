@@ -29,7 +29,22 @@ export function Table({
 
   const handleCopyQRCodeURL = async (url) => {
     try {
-      await navigator.clipboard.writeText(url);
+      // navigator.clipboard only works on HTTPS or localhost
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for HTTP: use a temporary textarea
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
       setCopyFeedback("copied"); // Trigger feedback
       setTimeout(() => setCopyFeedback(null), 2000); // Hide feedback after 2 seconds
     } catch (err) {

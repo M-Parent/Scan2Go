@@ -9,6 +9,12 @@ const logger = require("../logger");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const os = require("os");
+const crypto = require("crypto");
+
+// Generate random folder name
+function generateFolderName() {
+  return crypto.randomBytes(16).toString("hex");
+}
 
 // Get local IPv4 address
 function getLocalIPv4() {
@@ -133,12 +139,14 @@ router.post("/", upload.single("projectImage"), (req, res) => {
           .json({ error: "This project name already exists." });
       }
 
-      const projectFolder = path.join("uploads", projectName);
+      // Generate random folder name instead of using project name
+      const folderName = generateFolderName();
+      const projectFolder = path.join("uploads", folderName);
       fs.mkdirSync(projectFolder, { recursive: true });
 
       db.query(
-        "INSERT INTO project (project_name, project_image) VALUES (?, ?)",
-        [projectName, projectImage],
+        "INSERT INTO project (project_name, folder_name, project_image) VALUES (?, ?, ?)",
+        [projectName, folderName, projectImage],
         (err, insertResult) => {
           if (err) {
             console.error("Error adding project:", err);
@@ -168,7 +176,7 @@ router.post("/", upload.single("projectImage"), (req, res) => {
               }
               const newProject = newProjectResults[0];
               logger.info(
-                `Project created: ID=${newProject.id}, Name="${newProject.project_name}", Image Path="${newProject.project_image}", Created At=${newProject.created_at}`
+                `Project created: ID=${newProject.id}, Name="${newProject.project_name}", Folder="${newProject.folder_name}", Image Path="${newProject.project_image}", Created At=${newProject.created_at}`
               );
               return res.status(201).json(newProject);
             }
@@ -203,380 +211,137 @@ router.get("/:id", (req, res) => {
 });
 
 // Update project - keep existing name/image when not provided
-router.put("/:id", upload.single("projectImage"), (req, res) => {
+// Folder is NOT renamed when project name changes (uses random folder_name)
+router.put("/:id", upload.single("projectImage"), async (req, res) => {
   const projectId = req.params.id;
   let { projectName } = req.body;
   let newProjectImage = req.file ? req.file.path.replace(/\\/g, "/") : null;
 
-  db.beginTransaction((err) => {
-    if (err) return res.status(500).json({ error: "Transaction error." });
-
+  try {
     // Check duplicate name (only if provided)
-    const checkNameQuery =
-      "SELECT 1 FROM project WHERE project_name = ? AND id != ?";
-    db.query(checkNameQuery, [projectName || "", projectId], (err, results) => {
-      if (err) {
+    if (projectName) {
+      const [existing] = await db
+        .promise()
+        .query("SELECT 1 FROM project WHERE project_name = ? AND id != ?", [
+          projectName,
+          projectId,
+        ]);
+      if (existing && existing.length > 0) {
         if (req.file) fs.unlinkSync(req.file.path);
-        return db.rollback(() =>
-          res.status(500).json({ error: "Error verifying project name." })
-        );
+        return res
+          .status(400)
+          .json({ error: "This project name already exists." });
       }
-      if (projectName && results && results.length > 0) {
-        if (req.file) fs.unlinkSync(req.file.path);
-        return db.rollback(() =>
-          res.status(400).json({ error: "This project name already exists." })
-        );
-      }
+    }
 
-      // Fetch current project
-      db.query(
-        "SELECT project_name, project_image, updated_at FROM project WHERE id = ?",
-        [projectId],
-        (err, rows) => {
-          if (err || !rows || rows.length === 0) {
-            if (req.file) fs.unlinkSync(req.file.path);
-            return db.rollback(() =>
-              res
-                .status(err ? 500 : 404)
-                .json({ error: err ? err.message : "Project not found." })
-            );
-          }
-
-          const current = rows[0];
-          const currentProjectName = current.project_name;
-          const dbProjectImage = current.project_image;
-
-          const finalName =
-            projectName && projectName.trim() !== ""
-              ? projectName.trim()
-              : currentProjectName;
-
-          // If a new image was uploaded, use it; otherwise keep existing image
-          let finalImage = dbProjectImage;
-          if (newProjectImage) {
-            finalImage = newProjectImage;
-          }
-
-          const oldFolderPath = path.join("uploads", currentProjectName);
-          const newFolderPath = path.join("uploads", finalName);
-
-          // Function to update file paths and regenerate PDFs when project name changes
-          const updateFilePathsAndRegeneratePdfs = async (oldName, newName) => {
-            try {
-              // Get all sections for this project
-              const [sections] = await db
-                .promise()
-                .query(
-                  "SELECT id, section_name FROM section WHERE project_id = ?",
-                  [projectId]
-                );
-
-              if (!sections || sections.length === 0) {
-                return; // No sections, continue
-              }
-
-              const serverIP = process.env.SERVER_IP || getLocalIPv4();
-              const serverPort = process.env.SERVER_PORT || 6301;
-
-              for (const section of sections) {
-                const sectionName = section.section_name;
-
-                // Get all files in this section
-                const [files] = await db
-                  .promise()
-                  .query(
-                    "SELECT id, name, path_file, path_pdf FROM file WHERE section_id = ?",
-                    [section.id]
-                  );
-
-                for (const file of files) {
-                  const fileName = file.name;
-
-                  // New file path
-                  const newPathFile = `uploads/${newName}/${sectionName}/${fileName}/${path.basename(
-                    file.path_file
-                  )}`;
-
-                  // New PDF path
-                  const newPathPdf = `uploads/${newName}/${sectionName}/${fileName}/${fileName}_qr.pdf`;
-
-                  // QR code URL stays the same (based on file ID)
-                  const fileUrl = `http://${serverIP}:${serverPort}/api/uploadFile/download-file/${file.id}`;
-
-                  // Delete old PDF in the new folder if it exists
-                  const oldPdfInNewFolder = path.join(
-                    __dirname,
-                    "..",
-                    "uploads",
-                    newName,
-                    sectionName,
-                    fileName,
-                    `${fileName}_qr.pdf`
-                  );
-                  if (fs.existsSync(oldPdfInNewFolder)) {
-                    fs.unlinkSync(oldPdfInNewFolder);
-                  }
-
-                  // Get tags for this file
-                  const [tags] = await db
-                    .promise()
-                    .query("SELECT tag_name FROM tag WHERE file_id = ?", [
-                      file.id,
-                    ]);
-                  const tagNames = tags.map((t) => t.tag_name);
-
-                  // Generate new PDF with updated project name
-                  const newPdfPath = path.join(__dirname, "..", newPathPdf);
-                  await generatePdfWithQrCode(
-                    fileUrl,
-                    newPdfPath,
-                    fileName,
-                    newName, // Use NEW project name
-                    sectionName,
-                    tagNames
-                  );
-
-                  // Update database
-                  await db
-                    .promise()
-                    .query(
-                      "UPDATE file SET path_file = ?, url_qr_code = ?, path_pdf = ? WHERE id = ?",
-                      [newPathFile, fileUrl, newPathPdf, file.id]
-                    );
-
-                  logger.info(
-                    `Updated file paths and regenerated PDF for file ID ${file.id}: ${fileName} - New project: ${newName}`
-                  );
-                }
-              }
-            } catch (err) {
-              console.error(
-                "Error updating file paths and regenerating PDFs:",
-                err
-              );
-            }
-          };
-
-          const continueUpdate = () => {
-            const sql =
-              "UPDATE project SET project_name = ?, project_image = ? WHERE id = ?";
-            db.query(sql, [finalName, finalImage, projectId], (err) => {
-              if (err) {
-                if (req.file) fs.unlinkSync(req.file.path);
-                return db.rollback(() =>
-                  res.status(500).json({ error: err.message })
-                );
-              }
-
-              db.commit((err) => {
-                if (err)
-                  return res.status(500).json({ error: "Commit error." });
-
-                db.query(
-                  "SELECT * FROM project WHERE id = ?",
-                  [projectId],
-                  (err, updatedRows) => {
-                    if (err)
-                      return res.status(500).json({ error: err.message });
-                    const updatedProject = updatedRows[0];
-
-                    // Delete old image file if replaced by new upload
-                    if (newProjectImage && dbProjectImage) {
-                      const fullOldImagePath = path.join(
-                        "uploads",
-                        "project_img",
-                        dbProjectImage.substring(
-                          dbProjectImage.lastIndexOf("/") + 1
-                        )
-                      );
-                      fs.access(fullOldImagePath, (err) => {
-                        if (!err) {
-                          fs.unlink(fullOldImagePath, (err) => {
-                            if (err)
-                              console.error("Error deleting old image:", err);
-                          });
-                        }
-                      });
-                    }
-
-                    // Log changes
-                    if (currentProjectName !== updatedProject.project_name) {
-                      logger.info(
-                        `Project name changed - Old: "${currentProjectName}", New: "${updatedProject.project_name}", Updated at: ${updatedProject.updated_at}`
-                      );
-                    }
-                    if (dbProjectImage !== updatedProject.project_image) {
-                      logger.info(
-                        `Project image changed - Old: "${dbProjectImage}", New: "${updatedProject.project_image}", Updated at: ${updatedProject.updated_at}`
-                      );
-                    }
-
-                    return res.status(200).json(updatedProject);
-                  }
-                );
-              });
-            });
-          };
-
-          // If name changed, try rename folder and adjust image path if needed
-          if (finalName !== currentProjectName) {
-            fs.access(oldFolderPath, async (err) => {
-              if (err) {
-                // If old folder doesn't exist, still update file paths in DB then continue
-                await updateFilePathsAndRegeneratePdfs(
-                  currentProjectName,
-                  finalName
-                );
-                continueUpdate();
-                return;
-              }
-              fs.rename(oldFolderPath, newFolderPath, async (err) => {
-                if (err) {
-                  // ignore rename failure, but still try to update DB paths
-                  await updateFilePathsAndRegeneratePdfs(
-                    currentProjectName,
-                    finalName
-                  );
-                  continueUpdate();
-                  return;
-                }
-                // If project image contains old folder name, update stored path
-                if (
-                  dbProjectImage &&
-                  dbProjectImage.includes(currentProjectName) &&
-                  !newProjectImage
-                ) {
-                  finalImage = dbProjectImage.replace(
-                    currentProjectName,
-                    finalName
-                  );
-                }
-                // Update all file paths in database and regenerate PDFs
-                await updateFilePathsAndRegeneratePdfs(
-                  currentProjectName,
-                  finalName
-                );
-                continueUpdate();
-              });
-            });
-          } else {
-            continueUpdate();
-          }
-        }
+    // Fetch current project
+    const [rows] = await db
+      .promise()
+      .query(
+        "SELECT project_name, folder_name, project_image FROM project WHERE id = ?",
+        [projectId]
       );
-    });
-  });
-});
 
-// DELETE route (Corrected to use callbacks)
-router.delete("/:id", (req, res) => {
-  const projectId = req.params.id;
+    if (!rows || rows.length === 0) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: "Project not found." });
+    }
 
-  db.query(
-    "SELECT project_name, project_image FROM project WHERE id = ?",
-    [projectId],
-    (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: "Error retrieving project." });
-      }
+    const current = rows[0];
+    const finalName =
+      projectName && projectName.trim() !== ""
+        ? projectName.trim()
+        : current.project_name;
 
-      if (results.length === 0) {
-        return res.status(404).json({ error: "Project not found." });
-      }
-
-      const projectName = results[0].project_name;
-      const projectImage = results[0].project_image;
-      const projectFolder = path.join("uploads", projectName);
-
-      // Compute safe image path to delete (basename supports URLs and relative paths)
-      let projectImageToDelete = null;
-      try {
-        if (projectImage && typeof projectImage === "string") {
-          const imageBase = path.basename(projectImage);
-          if (imageBase) {
-            projectImageToDelete = path.join(
-              __dirname,
-              "..",
-              "uploads",
-              "project_img",
-              imageBase
-            );
-          }
+    // If a new image was uploaded, use it; otherwise keep existing image
+    let finalImage = current.project_image;
+    if (newProjectImage) {
+      finalImage = newProjectImage;
+      // Delete old image if it exists
+      if (current.project_image) {
+        const oldImagePath = path.join(__dirname, "..", current.project_image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
         }
-      } catch (e) {
-        projectImageToDelete = null;
       }
+    }
 
-      // Nouvelle requête pour récupérer les informations du projet avant la suppression
-      db.query(
-        "SELECT id, project_name, updated_at FROM project WHERE id = ?",
-        [projectId],
-        (err, projectResults) => {
-          if (err) {
-            console.error("Error retrieving project:", err);
-            return res.status(500).json({
-              error: "Error retrieving project.",
-            });
-          }
+    // Update project (no folder renaming needed - folder_name stays the same)
+    await db
+      .promise()
+      .query(
+        "UPDATE project SET project_name = ?, project_image = ? WHERE id = ?",
+        [finalName, finalImage, projectId]
+      );
 
-          if (projectResults.length > 0) {
-            const project = projectResults[0];
-            logger.info(
-              `Project deleted: ID=${project.id}, Name="${project.project_name}", Deleted At=${project.updated_at}`
-            );
-          } else {
-            logger.info(`Project with ID ${projectId} not found.`);
-            return res.status(404).json({ error: "Project not found." });
-          }
+    const [updatedRows] = await db
+      .promise()
+      .query("SELECT * FROM project WHERE id = ?", [projectId]);
 
-          // Suppression du projet après la journalisation
-          db.query("DELETE FROM project WHERE id = ?", [projectId], (err) => {
-            if (err) {
-              return res.status(500).json({ error: "Error deleting project." });
-            }
+    const updatedProject = updatedRows[0];
 
-            fs.access(projectFolder, (err) => {
-              if (!err) {
-                fs.rm(projectFolder, { recursive: true }, (err) => {
-                  if (err) {
-                    console.error("Error deleting folder:", err);
-                  } else {
-                    logger.info("Folder deleted:", projectFolder);
-                  }
-                });
-              } else {
-                logger.info(
-                  "Folder does not exist or has already been deleted:",
-                  projectFolder
-                );
-              }
-            });
-
-            if (projectImageToDelete) {
-              fs.access(projectImageToDelete, (err) => {
-                if (!err) {
-                  fs.unlink(projectImageToDelete, (err) => {
-                    if (err) {
-                      console.error("Error deleting image:", err);
-                    } else {
-                      logger.info("Image deleted:", projectImageToDelete);
-                    }
-                  });
-                } else {
-                  logger.info(
-                    "Image does not exist or has already been deleted:",
-                    projectImageToDelete
-                  );
-                }
-              });
-            }
-
-            return res.status(204).json();
-          });
-        }
+    if (current.project_name !== updatedProject.project_name) {
+      logger.info(
+        `Project name changed - Old: "${current.project_name}", New: "${updatedProject.project_name}", Updated at: ${updatedProject.updated_at}`
       );
     }
-  );
+
+    return res.status(200).json(updatedProject);
+  } catch (err) {
+    console.error("Error updating project:", err);
+    if (req.file) fs.unlinkSync(req.file.path);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE route - uses folder_name for filesystem operations
+router.delete("/:id", async (req, res) => {
+  const projectId = req.params.id;
+
+  try {
+    const [results] = await db
+      .promise()
+      .query(
+        "SELECT project_name, folder_name, project_image FROM project WHERE id = ?",
+        [projectId]
+      );
+
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: "Project not found." });
+    }
+
+    const project = results[0];
+    const folderName = project.folder_name || project.project_name; // fallback for old data
+    const projectFolder = path.join(__dirname, "..", "uploads", folderName);
+
+    // Delete project image if exists
+    if (project.project_image) {
+      const imagePath = path.join(__dirname, "..", project.project_image);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+        logger.info("Image deleted:", imagePath);
+      }
+    }
+
+    // Log before deletion
+    logger.info(
+      `Project deleted: ID=${projectId}, Name="${project.project_name}", Folder="${folderName}"`
+    );
+
+    // Delete from database (CASCADE will delete sections and files)
+    await db.promise().query("DELETE FROM project WHERE id = ?", [projectId]);
+
+    // Delete project folder
+    if (fs.existsSync(projectFolder)) {
+      fs.rmSync(projectFolder, { recursive: true, force: true });
+      logger.info("Folder deleted:", projectFolder);
+    }
+
+    return res.status(204).json();
+  } catch (err) {
+    console.error("Error deleting project:", err);
+    return res.status(500).json({ error: "Error deleting project." });
+  }
 });
 
 router.get("/export-project-files/:projectId", async (req, res) => {
@@ -585,22 +350,26 @@ router.get("/export-project-files/:projectId", async (req, res) => {
   try {
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "Project not found." });
     }
     const projectName = project[0].project_name;
+    const folderName = project[0].folder_name || projectName; // fallback for old data
 
-    const projectFolder = path.join(__dirname, "..", "uploads", projectName);
+    const projectFolder = path.join(__dirname, "..", "uploads", folderName);
 
     if (!fs.existsSync(projectFolder)) {
       return res.status(404).json({ error: "Project folder not found." });
     }
 
-    // Récupérer tous les chemins de fichiers pour le projet
+    // Get all files with their DB names for proper ZIP structure
     const [files] = await db.promise().query(
       `
-        SELECT file.path_file
+        SELECT file.id, file.name as file_name, file.path_file,
+               section.section_name
         FROM file
         JOIN section ON file.section_id = section.id
         WHERE section.project_id = ?
@@ -619,11 +388,13 @@ router.get("/export-project-files/:projectId", async (req, res) => {
 
     const zip = new AdmZip();
 
+    // Use DB names (section_name, file_name) for ZIP structure, not folder names
     for (const file of files) {
       const filePath = path.join(__dirname, "..", file.path_file);
       if (fs.existsSync(filePath)) {
-        const relativePath = path.relative(projectFolder, filePath);
-        zip.addLocalFile(filePath, path.dirname(relativePath));
+        // Create path using DB names: sectionName/fileName/actualFile
+        const zipPath = path.join(file.section_name, file.file_name);
+        zip.addLocalFile(filePath, zipPath);
       } else {
         console.warn(`File not found: ${filePath}`);
       }
@@ -638,7 +409,6 @@ router.get("/export-project-files/:projectId", async (req, res) => {
     );
     res.send(zipBuffer);
 
-    // Ajout du message de journalisation
     const now = new Date();
     logger.info(
       `Project files exported: Project ID=${projectId}, Project Name="${projectName}", Exported at: ${now.toISOString()}`
@@ -655,22 +425,26 @@ router.get("/export-project-qr/:projectId", async (req, res) => {
   try {
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "Project not found." });
     }
     const projectName = project[0].project_name;
+    const folderName = project[0].folder_name || projectName;
 
-    const projectFolder = path.join(__dirname, "..", "uploads", projectName);
+    const projectFolder = path.join(__dirname, "..", "uploads", folderName);
 
     if (!fs.existsSync(projectFolder)) {
       return res.status(404).json({ error: "Project folder not found." });
     }
 
-    // Récupérer tous les chemins de fichiers QR pour le projet
+    // Get all QR PDF files with their DB names
     const [files] = await db.promise().query(
       `
-        SELECT file.path_pdf
+        SELECT file.id, file.name as file_name, file.path_pdf,
+               section.section_name
         FROM file
         JOIN section ON file.section_id = section.id
         WHERE section.project_id = ?
@@ -689,14 +463,14 @@ router.get("/export-project-qr/:projectId", async (req, res) => {
 
     const zip = new AdmZip();
 
+    // Use DB names for ZIP structure
     for (const file of files) {
-      // Normaliser le chemin pour Windows (remplacer / par \)
       const normalizedPath = file.path_pdf.split("/").join(path.sep);
       const filePath = path.join(__dirname, "..", normalizedPath);
       if (fs.existsSync(filePath)) {
-        // Garder la structure des dossiers dans le ZIP
-        const relativePath = path.relative(projectFolder, filePath);
-        zip.addLocalFile(filePath, path.dirname(relativePath));
+        // Create path using DB names: sectionName/fileName/
+        const zipPath = path.join(file.section_name, file.file_name);
+        zip.addLocalFile(filePath, zipPath);
       } else {
         console.warn(`QR code file not found: ${filePath}`);
       }

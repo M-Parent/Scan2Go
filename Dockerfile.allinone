@@ -35,6 +35,9 @@ WORKDIR /app/backend
 RUN npm ci --only=production
 COPY s2g-express/ /app/backend/
 
+# Create symlink so backend can access uploads at ./uploads -> /app/uploads
+RUN rm -rf /app/backend/uploads && ln -s /app/uploads /app/backend/uploads
+
 # Copy frontend (pre-built)
 COPY s2g-react/build/ /var/www/html/
 

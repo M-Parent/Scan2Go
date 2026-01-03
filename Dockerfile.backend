@@ -1,0 +1,23 @@
+# Scan2Go Backend - Express.js API
+FROM node:20-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY s2g-express/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy app source
+COPY s2g-express/ ./
+
+# Create uploads and logs directories
+RUN mkdir -p /app/uploads /app/logs
+
+# Expose port
+EXPOSE 6301
+
+# Start the server
+CMD ["node", "server.js"]

@@ -48,39 +48,28 @@
 
 > **Recommended for simple deployments** - Single container with all services included.
 
-### Option 1: Using Docker Hub Image
+### Option 1: Docker Run
 
 ```bash
-# Pull the all-in-one image
-docker pull mpmk/scan2go:v1.5
-
-# Run the container
 docker run -d \
   --name scan2go \
   -p 80:80 \
   -e POSTGRES_PASSWORD=YourSecurePassword123! \
+  -e FRONTEND_URLS=http://YOUR_SERVER_IP \
   -v scan2go-uploads:/app/uploads \
   -v scan2go-db:/var/lib/postgresql/data \
+  --restart unless-stopped \
   mpmk/scan2go:v1.5
 ```
 
-### Option 2: Using Docker Compose
+### Option 2: Docker Compose
 
-1. **Create a `.env` file:**
-
-```env
-# Database
-POSTGRES_DB=scan2go
-POSTGRES_USER=scan2go
-POSTGRES_PASSWORD=YourSecurePassword123!
-
-# Server
-FRONTEND_URLS=http://localhost,http://your-server-ip
-```
-
-2. **Create a `docker-compose.yml` file:**
+Create a file `docker-compose.yml`:
 
 ```yaml
+# Scan2Go - All-in-One Docker Compose
+# Single container with Frontend + Backend + Database
+
 services:
   scan2go:
     image: mpmk/scan2go:v1.5
@@ -100,17 +89,29 @@ services:
 
 volumes:
   scan2go-uploads:
+    name: scan2go-uploads
   scan2go-logs:
+    name: scan2go-logs
   scan2go-db:
+    name: scan2go-db
 ```
 
-3. **Start the application:**
+Create a file `.env`:
+
+```env
+POSTGRES_DB=scan2go
+POSTGRES_USER=scan2go
+POSTGRES_PASSWORD=YourSecurePassword123!
+FRONTEND_URLS=http://YOUR_SERVER_IP
+```
+
+Start:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-4. **Access:** http://localhost
+**Access:** http://YOUR_SERVER_IP
 
 ---
 
@@ -139,23 +140,14 @@ docker-compose up -d
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Docker Compose for Microservices
+### Docker Compose
 
-1. **Create a `.env` file:**
-
-```env
-# Database Configuration
-POSTGRES_DB=scan2go
-POSTGRES_USER=scan2go
-POSTGRES_PASSWORD=YourSecurePassword123!
-
-# Backend Configuration
-FRONTEND_URLS=http://localhost,http://your-server-ip
-```
-
-2. **Create a `docker-compose.yml` file:**
+Create a file `docker-compose.yml`:
 
 ```yaml
+# Scan2Go - Microservices Deployment
+# Separate containers for Frontend, Backend, and Database
+
 services:
   # ============================================
   # Frontend - React with Nginx
@@ -169,7 +161,7 @@ services:
     depends_on:
       - backend
     networks:
-      - scan2go_network
+      - scan2go-network
 
   # ============================================
   # Backend - Express.js API
@@ -188,13 +180,13 @@ services:
       DB_USER: ${POSTGRES_USER:-scan2go}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
     volumes:
-      - uploads_data:/app/uploads
-      - logs_data:/app/logs
+      - uploads-data:/app/uploads
+      - logs-data:/app/logs
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - scan2go_network
+      - scan2go-network
 
   # ============================================
   # Database - PostgreSQL 18
@@ -208,7 +200,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-scan2go}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
@@ -220,26 +212,33 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - scan2go_network
+      - scan2go-network
 
 volumes:
-  db_data:
-  uploads_data:
-  logs_data:
+  db-data:
+  uploads-data:
+  logs-data:
 
 networks:
-  scan2go_network:
+  scan2go-network:
 ```
 
-3. **Start the application:**
+Create a file `.env`:
+
+```env
+POSTGRES_DB=scan2go
+POSTGRES_USER=scan2go
+POSTGRES_PASSWORD=YourSecurePassword123!
+FRONTEND_URLS=http://YOUR_SERVER_IP
+```
+
+Start:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-4. **Access:**
-   - 🌐 **Frontend:** http://localhost
-   - 🔌 **API:** http://localhost:6301/api
+**Access:** http://YOUR_SERVER_IP
 
 ---
 
@@ -248,16 +247,15 @@ docker-compose up -d
 | Image          | Tag             | Description                         |
 | -------------- | --------------- | ----------------------------------- |
 | `mpmk/scan2go` | `v1.5`          | 📦 All-in-One (Frontend+Backend+DB) |
-| `mpmk/scan2go` | `latest`        | 📦 Latest All-in-One (→ v1.5)       |
+| `mpmk/scan2go` | `latest`        | 📦 Latest All-in-One                |
 | `mpmk/scan2go` | `frontend-v1.5` | 🎨 Microservice: React + Nginx      |
 | `mpmk/scan2go` | `backend-v1.5`  | 🖥️ Microservice: Express.js API     |
 
 ### Pull Commands
 
 ```bash
-# All-in-One (recommended)
+# All-in-One
 docker pull mpmk/scan2go:v1.5
-docker pull mpmk/scan2go:latest
 
 # Microservices
 docker pull mpmk/scan2go:frontend-v1.5
@@ -268,72 +266,14 @@ docker pull mpmk/scan2go:backend-v1.5
 
 ## ⚙️ Environment Variables
 
-### 🖥️ Backend (.env)
+| Variable            | Description             | Default            | Required |
+| ------------------- | ----------------------- | ------------------ | -------- |
+| `POSTGRES_PASSWORD` | Database password       | `Password123!`     | ✅       |
+| `POSTGRES_DB`       | Database name           | `scan2go`          | ❌       |
+| `POSTGRES_USER`     | Database user           | `scan2go`          | ❌       |
+| `FRONTEND_URLS`     | Server URL for QR codes | `http://localhost` | ✅       |
 
-| Variable        | Description          | Example                                 |
-| --------------- | -------------------- | --------------------------------------- |
-| `SERVER_IP`     | IP to bind server    | `0.0.0.0`                               |
-| `SERVER_PORT`   | API port             | `6301`                                  |
-| `FRONTEND_URLS` | Allowed CORS origins | `http://localhost,http://192.168.1.100` |
-| `DB_HOST`       | Database host        | `db` (Docker) or `localhost`            |
-| `DB_PORT`       | Database port        | `5432` (internal) or `5433` (external)  |
-| `DB_NAME`       | Database name        | `scan2go`                               |
-| `DB_USER`       | Database user        | `scan2go`                               |
-| `DB_PASSWORD`   | Database password    | `YourSecurePassword123!`                |
-
-**📄 Example `s2g-express/.env`:**
-
-```env
-# Server
-SERVER_IP=0.0.0.0
-SERVER_PORT=6301
-
-# CORS
-FRONTEND_URLS=http://localhost:3000,http://10.0.20.11
-
-# Database
-DB_HOST=localhost
-DB_PORT=5433
-DB_NAME=scan2go
-DB_USER=scan2go
-DB_PASSWORD=MyStr0ng!Passw0rd#2024
-```
-
----
-
-### 🎨 Frontend (.env)
-
-| Variable            | Description     | Example                 |
-| ------------------- | --------------- | ----------------------- |
-| `PORT`              | Dev server port | `3005`                  |
-| `REACT_APP_API_URL` | Backend API URL | `http://localhost:6301` |
-
-**📄 Example `s2g-react/.env`:**
-
-```env
-PORT=3005
-REACT_APP_API_URL=http://localhost:6301
-```
-
-> 💡 **Tip:** For Docker, leave `REACT_APP_API_URL` empty to use Nginx proxy.
-
----
-
-### 🗄️ Database (.env)
-
-| Variable            | Description       | Example                  |
-| ------------------- | ----------------- | ------------------------ |
-| `POSTGRES_DB`       | Database name     | `scan2go`                |
-| `POSTGRES_USER`     | Database user     | `scan2go`                |
-| `POSTGRES_PASSWORD` | Database password | `YourSecurePassword123!` |
-
-**📄 Example `s2g-DB/.env`:**
-
-```env
-POSTGRES_DB=scan2go
-POSTGRES_USER=scan2go
-POSTGRES_PASSWORD=MyStr0ng!Passw0rd#2024
-```
+> ⚠️ **Important:** Set `FRONTEND_URLS` to your server's IP or domain for QR codes to work correctly!
 
 ---
 
@@ -343,28 +283,31 @@ POSTGRES_PASSWORD=MyStr0ng!Passw0rd#2024
 
 - 📦 Node.js 20+
 - 🐘 PostgreSQL 18+
-- 🐳 Docker & Docker Compose (optional)
+- 🐳 Docker (optional)
 
 ### Local Development
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/scan2go.git
-cd scan2go
+git clone https://github.com/MPMK39/Scan2Go.git
+cd Scan2Go
 
-# 2. Start Database
-cd s2g-DB
-docker-compose up -d
+# 2. Start Database (using Docker)
+docker run -d --name s2g-db \
+  -e POSTGRES_DB=scan2go \
+  -e POSTGRES_USER=scan2go \
+  -e POSTGRES_PASSWORD=Password123! \
+  -p 5432:5432 \
+  postgres:18
 
 # 3. Start Backend
-cd ../s2g-express
-cp .env.example .env
+cd s2g-express
+cp .env.example .env  # Edit with your settings
 npm install
 npm run dev
 
 # 4. Start Frontend
 cd ../s2g-react
-cp .env.example .env
 npm install
 npm start
 ```
@@ -383,7 +326,7 @@ npm start
 | `POST`   | `/api/sections`                     | Create section     |
 | `PUT`    | `/api/sections/:id`                 | Update section     |
 | `DELETE` | `/api/sections/:id`                 | Delete section     |
-| `GET`    | `/api/uploadFile/section/:id`       | Get files          |
+| `GET`    | `/api/uploadFile/files/:sectionId`  | Get files          |
 | `POST`   | `/api/uploadFile/upload`            | Upload file        |
 | `GET`    | `/api/uploadFile/download/:id`      | Download ZIP       |
 | `GET`    | `/api/uploadFile/download-file/:id` | Download file (QR) |
@@ -393,28 +336,31 @@ npm start
 ## 📁 Project Structure
 
 ```
-Scan2Go_v1.0/
-├── 📁 s2g-express/          # 🖥️ Backend API
-│   ├── routes/              # API routes
-│   ├── uploads/             # Uploaded files
-│   ├── docker-compose.yml   # Standalone compose
-│   └── .env                 # Environment variables
+Scan2Go/
+├── 📁 s2g-express/              # 🖥️ Backend API
+│   ├── routes/                  # API routes
+│   ├── uploads/                 # Uploaded files
+│   ├── server.js                # Entry point
+│   └── .env.example             # Environment template
 │
-├── 📁 s2g-react/            # 🎨 Frontend App
-│   ├── src/                 # React source
-│   ├── docker-compose.yml   # Standalone compose
-│   └── .env                 # Environment variables
+├── 📁 s2g-react/                # 🎨 Frontend App
+│   ├── src/                     # React source
+│   ├── build/                   # Production build
+│   └── .env.example             # Environment template
 │
-├── 📁 s2g-DB/               # 🗄️ Database
-│   ├── docker-compose.yml   # Standalone compose
-│   └── .env                 # Environment variables
+├── 📁 nginx/                    # 🔀 Nginx configs
+│   ├── nginx-allinone.conf      # All-in-one config
+│   └── nginx-microservices.conf # Microservices config
 │
-├── 📁 nginx/                # 🔀 Nginx config
-│   └── nginx.conf           # Reverse proxy config
+├── 📁 supervisor/               # 🔄 Supervisor config
+│   └── supervisord.conf         # Process manager
 │
-├── docker-compose.yml       # 🐳 Build from source
-├── docker-compose.hub.yml   # 🐳 Docker Hub images
-└── README.md                # 📖 This file
+├── 🐳 Dockerfile.allinone       # All-in-one image
+├── 🐳 Dockerfile.frontend       # Frontend microservice
+├── 🐳 Dockerfile.backend        # Backend microservice
+├── 📄 docker-compose.allinone.yml      # All-in-one deploy
+├── 📄 docker-compose.microservices.yml # Microservices deploy
+└── 📖 README.md
 ```
 
 ---

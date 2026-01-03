@@ -20,7 +20,7 @@ chmod 700 "$PGDATA"
 if [ ! -f "$PGDATA/PG_VERSION" ]; then
     echo "Initializing PostgreSQL database..."
     su - postgres -c "$PGBIN/initdb -D $PGDATA --encoding=UTF8 --locale=C"
-    
+
     # Configure PostgreSQL to accept connections
     echo "host all all 0.0.0.0/0 md5" >> "$PGDATA/pg_hba.conf"
     echo "host all all ::0/0 md5" >> "$PGDATA/pg_hba.conf"

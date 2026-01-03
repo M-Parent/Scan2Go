@@ -1,0 +1,14 @@
+# Scan2Go Frontend - React with Nginx
+FROM nginx:alpine
+
+# Copy pre-built React app
+COPY s2g-react/build/ /usr/share/nginx/html/
+
+# Copy nginx configuration for microservices
+COPY nginx/nginx-microservices.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,8 +1,0 @@
-# REACT
-
-npm install react router-dom 
-
-
-# EXPRESS
-
-npm install express cors pg dotenv multer #nodemon

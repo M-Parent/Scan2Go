@@ -9,8 +9,14 @@ const logger = require("../logger");
 const QRCode = require("qrcode");
 const PDFDocument = require("pdfkit");
 const os = require("os");
+const crypto = require("crypto");
 
-// Fonction pour obtenir l'IP locale
+// Generate random folder name
+function generateFolderName() {
+  return crypto.randomBytes(16).toString("hex");
+}
+
+// Get local IPv4 address
 function getLocalIPv4() {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
@@ -126,19 +132,22 @@ router.post("/addsections", upload.array("files"), async (req, res) => {
   const sectionsToAdd = [];
 
   if (!projectId || !sectionNames || !Array.isArray(sectionNames)) {
-    return res.status(400).json({ message: "Données invalides" });
+    return res.status(400).json({ message: "Invalid data" });
   }
 
   try {
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
 
     if (!project || project.length === 0) {
-      return res.status(404).json({ message: "Projet non trouvé" });
+      return res.status(404).json({ message: "Project not found" });
     }
 
     const projectName = project[0].project_name;
+    const projectFolderName = project[0].folder_name || projectName; // fallback for old data
 
     for (const sectionName of sectionNames) {
       if (!sectionName) continue;
@@ -160,30 +169,31 @@ router.post("/addsections", upload.array("files"), async (req, res) => {
     if (Object.keys(errors).length > 0) {
       return res
         .status(400)
-        .json({ message: "Des noms de section sont invalides.", errors });
+        .json({ message: "Some section names are invalid.", errors });
     }
 
     for (const sectionName of sectionsToAdd) {
+      // Generate random folder name for section
+      const sectionFolderName = generateFolderName();
       const sectionPath = path.join(
         __dirname,
         "..",
         "uploads",
-        projectName,
-        sectionName
+        projectFolderName,
+        sectionFolderName
       );
       fs.mkdirSync(sectionPath, { recursive: true });
 
-      // Insertion de la section et récupération de l'ID
+      // Insert section with folder_name
       const [result] = await db
         .promise()
-        .query("INSERT INTO section (project_id, section_name) VALUES (?, ?)", [
-          projectId,
-          sectionName,
-        ]);
+        .query(
+          "INSERT INTO section (project_id, section_name, folder_name) VALUES (?, ?, ?)",
+          [projectId, sectionName, sectionFolderName]
+        );
 
       const sectionId = result.insertId;
 
-      // Récupération de la date de création
       const [sectionInfo] = await db
         .promise()
         .query("SELECT created_at FROM section WHERE id = ?", [sectionId]);
@@ -191,13 +201,11 @@ router.post("/addsections", upload.array("files"), async (req, res) => {
       const createdAt = sectionInfo[0].created_at;
 
       logger.info(
-        `Section created: ID = ${sectionId}, section name: "${sectionName}" for project name: "${projectName}", Created at: ${createdAt}`
+        `Section created: ID = ${sectionId}, section name: "${sectionName}", folder: "${sectionFolderName}" for project name: "${projectName}", Created at: ${createdAt}`
       );
     }
 
-    res
-      .status(201)
-      .json({ message: "Sections et fichiers ajoutés avec succès" });
+    res.status(201).json({ message: "Sections added successfully" });
   } catch (error) {
     console.error("Erreur lors de l'ajout des sections:", error);
     res.status(500).json({ message: "Erreur serveur" });
@@ -234,11 +242,11 @@ router.put("/:sectionId", async (req, res) => {
   }
 
   try {
-    // 1. Get the current section name, project name, and updated_at
+    // Get current section info
     const [section] = await db
       .promise()
       .query(
-        "SELECT section_name, project_id, updated_at FROM section WHERE id = ?",
+        "SELECT section_name, folder_name, project_id, updated_at FROM section WHERE id = ?",
         [sectionId]
       );
 
@@ -248,9 +256,8 @@ router.put("/:sectionId", async (req, res) => {
 
     const currentSectionName = section[0].section_name;
     const projectId = section[0].project_id;
-    const sectionUpdatedAt = section[0].updated_at;
 
-    // Si le nom n'a pas changé, ne rien faire
+    // If name hasn't changed, return current data
     if (currentSectionName === newSectionName) {
       const [updatedSection] = await db
         .promise()
@@ -258,56 +265,7 @@ router.put("/:sectionId", async (req, res) => {
       return res.status(200).json(updatedSection[0]);
     }
 
-    const [project] = await db
-      .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
-
-    if (!project || project.length === 0) {
-      return res.status(404).json({ error: "Project not found." });
-    }
-    const projectName = project[0].project_name;
-
-    // 2. Chemins des dossiers
-    const oldFolderPath = path.join(
-      __dirname,
-      "..",
-      "uploads",
-      projectName,
-      currentSectionName
-    );
-    const newFolderPath = path.join(
-      __dirname,
-      "..",
-      "uploads",
-      projectName,
-      newSectionName
-    );
-
-    // 3. Renommer le dossier de section
-    if (fs.existsSync(oldFolderPath)) {
-      // Créer le nouveau dossier
-      fs.mkdirSync(newFolderPath, { recursive: true });
-
-      // Copier tous les sous-dossiers (fichiers) vers le nouveau dossier
-      const items = fs.readdirSync(oldFolderPath);
-      for (const item of items) {
-        const oldItemPath = path.join(oldFolderPath, item);
-        const newItemPath = path.join(newFolderPath, item);
-        if (fs.lstatSync(oldItemPath).isDirectory()) {
-          // Copier le dossier récursivement
-          fs.cpSync(oldItemPath, newItemPath, { recursive: true });
-        } else {
-          fs.copyFileSync(oldItemPath, newItemPath);
-        }
-      }
-    } else {
-      logger.warn(
-        `Folder ${oldFolderPath} does not exist. Creating new folder.`
-      );
-      fs.mkdirSync(newFolderPath, { recursive: true });
-    }
-
-    // 4. Update the database section name
+    // Update only the section name in DB (folder stays the same)
     const [result] = await db
       .promise()
       .query("UPDATE section SET section_name = ? WHERE id = ?", [
@@ -319,90 +277,21 @@ router.put("/:sectionId", async (req, res) => {
       return res.status(404).json({ error: "Section not found for update." });
     }
 
-    // 5. Update file paths and regenerate PDFs
-    const [filesToUpdate] = await db
-      .promise()
-      .query(
-        "SELECT id, name, path_file, url_qr_code, path_pdf FROM file WHERE section_id = ?",
-        [sectionId]
-      );
-
-    const serverIP = process.env.SERVER_IP || getLocalIPv4();
-    const serverPort = process.env.SERVER_PORT || 6301;
-
-    for (const file of filesToUpdate) {
-      const fileName = file.name;
-
-      // Nouveau chemin du fichier
-      const newPathFile = `uploads/${projectName}/${newSectionName}/${fileName}/${path.basename(
-        file.path_file
-      )}`;
-
-      // Nouveau chemin du PDF
-      const newPathPdf = `uploads/${projectName}/${newSectionName}/${fileName}/${fileName}_qr.pdf`;
-
-      // L'URL QR code reste la même (basée sur l'ID du fichier)
-      const fileUrl = `http://${serverIP}:${serverPort}/api/uploadFile/download-file/${file.id}`;
-
-      // Supprimer l'ancien PDF dans le nouveau dossier (s'il existe)
-      const oldPdfInNewFolder = path.join(
-        newFolderPath,
-        fileName,
-        `${fileName}_qr.pdf`
-      );
-      if (fs.existsSync(oldPdfInNewFolder)) {
-        fs.unlinkSync(oldPdfInNewFolder);
-      }
-
-      // Récupérer les tags du fichier
-      const [tags] = await db
-        .promise()
-        .query("SELECT tag_name FROM tag WHERE file_id = ?", [file.id]);
-      const tagNames = tags.map((t) => t.tag_name);
-
-      // Générer le nouveau PDF
-      const newPdfPath = path.join(__dirname, "..", newPathPdf);
-      await generatePdfWithQrCode(
-        fileUrl,
-        newPdfPath,
-        fileName,
-        projectName,
-        newSectionName,
-        tagNames
-      );
-
-      // Mettre à jour la base de données
-      await db
-        .promise()
-        .query(
-          "UPDATE file SET path_file = ?, url_qr_code = ?, path_pdf = ? WHERE id = ?",
-          [newPathFile, fileUrl, newPathPdf, file.id]
-        );
-
-      logger.info(
-        `Updated file paths for file ID ${file.id}: ${fileName} - New section: ${newSectionName}`
-      );
-    }
-
-    // 6. Supprimer l'ancien dossier de section
-    if (fs.existsSync(oldFolderPath) && oldFolderPath !== newFolderPath) {
-      fs.rmSync(oldFolderPath, { recursive: true, force: true });
-      logger.info(`Deleted old section folder: ${oldFolderPath}`);
-    }
-
-    // 7. Return the updated section data and log the change
+    // Return the updated section data and log the change
     const [updatedSection] = await db
       .promise()
       .query("SELECT * FROM section WHERE id = ?", [sectionId]);
 
-    const updatedSectionData = updatedSection[0];
+    const [project] = await db
+      .promise()
+      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+    const projectName = project[0]?.project_name || "Unknown";
 
-    // Log the section name change
     logger.info(
-      `Section name changed - Old Name: "${currentSectionName}", New Name: "${updatedSectionData.section_name}", for project: "${projectName}", Updated at: ${sectionUpdatedAt}`
+      `Section name changed - Old Name: "${currentSectionName}", New Name: "${newSectionName}", for project: "${projectName}"`
     );
 
-    res.status(200).json(updatedSectionData);
+    res.status(200).json(updatedSection[0]);
   } catch (error) {
     logger.error("Error updating section:", error);
     res.status(500).json({ error: "Server error" });
@@ -413,11 +302,11 @@ router.delete("/:sectionId", async (req, res) => {
   const sectionId = req.params.sectionId;
 
   try {
-    // Récupérer les informations de la section avant la suppression
+    // Get section info before deletion
     const [section] = await db
       .promise()
       .query(
-        "SELECT section_name, project_id, updated_at FROM section WHERE id = ?",
+        "SELECT section_name, folder_name, project_id, updated_at FROM section WHERE id = ?",
         [sectionId]
       );
 
@@ -426,25 +315,29 @@ router.delete("/:sectionId", async (req, res) => {
     }
 
     const sectionName = section[0].section_name;
+    const sectionFolderName = section[0].folder_name || sectionName; // fallback
     const projectId = section[0].project_id;
     const sectionUpdatedAt = section[0].updated_at;
 
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
 
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "Project not found." });
     }
     const projectName = project[0].project_name;
+    const projectFolderName = project[0].folder_name || projectName;
 
-    // 1. Delete the folder
+    // Delete the folder using folder_name
     const folderPath = path.join(
       __dirname,
       "..",
       "uploads",
-      projectName,
-      sectionName
+      projectFolderName,
+      sectionFolderName
     );
 
     if (fs.existsSync(folderPath)) {
@@ -453,7 +346,7 @@ router.delete("/:sectionId", async (req, res) => {
       console.warn(`Folder ${folderPath} does not exist. Skipping delete.`);
     }
 
-    // 2. Delete the database entry
+    // Delete the database entry
     const [result] = await db
       .promise()
       .query("DELETE FROM section WHERE id = ?", [sectionId]);
@@ -462,7 +355,6 @@ router.delete("/:sectionId", async (req, res) => {
       return res.status(404).json({ error: "Section not found for deletion." });
     }
 
-    // Journalisation de la suppression après la suppression
     logger.info(
       `Section deleted: ID = ${sectionId}, section name: "${sectionName}" for project name: "${projectName}", deleted at: ${sectionUpdatedAt}`
     );
@@ -480,29 +372,34 @@ router.get("/export/:sectionId", async (req, res) => {
   try {
     const [section] = await db
       .promise()
-      .query("SELECT section_name, project_id FROM section WHERE id = ?", [
-        sectionId,
-      ]);
+      .query(
+        "SELECT section_name, folder_name, project_id FROM section WHERE id = ?",
+        [sectionId]
+      );
     if (!section || section.length === 0) {
       return res.status(404).json({ error: "Section not found." });
     }
     const sectionName = section[0].section_name;
+    const sectionFolderName = section[0].folder_name || sectionName;
     const projectId = section[0].project_id;
 
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "Project not found." });
     }
     const projectName = project[0].project_name;
+    const projectFolderName = project[0].folder_name || projectName;
 
     const folderPath = path.join(
       __dirname,
       "..",
       "uploads",
-      projectName,
-      sectionName
+      projectFolderName,
+      sectionFolderName
     );
 
     if (!fs.existsSync(folderPath)) {
@@ -511,7 +408,10 @@ router.get("/export/:sectionId", async (req, res) => {
 
     const [files] = await db
       .promise()
-      .query("SELECT path_file FROM file WHERE section_id = ?", [sectionId]);
+      .query(
+        "SELECT name as file_name, path_file FROM file WHERE section_id = ?",
+        [sectionId]
+      );
 
     if (!files || files.length === 0) {
       logger.info(
@@ -524,11 +424,12 @@ router.get("/export/:sectionId", async (req, res) => {
 
     const zip = new AdmZip();
 
+    // Use DB file names for ZIP structure
     for (const file of files) {
       const filePath = path.join(__dirname, "..", file.path_file);
       if (fs.existsSync(filePath)) {
-        const relativePath = path.relative(folderPath, filePath);
-        zip.addLocalFile(filePath, path.dirname(relativePath));
+        // Add to zip using DB file name
+        zip.addLocalFile(filePath, file.file_name);
       } else {
         console.warn(`File not found: ${filePath}`);
       }
@@ -556,29 +457,34 @@ router.get("/export-qr/:sectionId", async (req, res) => {
   try {
     const [section] = await db
       .promise()
-      .query("SELECT section_name, project_id FROM section WHERE id = ?", [
-        sectionId,
-      ]);
+      .query(
+        "SELECT section_name, folder_name, project_id FROM section WHERE id = ?",
+        [sectionId]
+      );
     if (!section || section.length === 0) {
       return res.status(404).json({ error: "Section not found." });
     }
     const sectionName = section[0].section_name;
+    const sectionFolderName = section[0].folder_name || sectionName;
     const projectId = section[0].project_id;
 
     const [project] = await db
       .promise()
-      .query("SELECT project_name FROM project WHERE id = ?", [projectId]);
+      .query("SELECT project_name, folder_name FROM project WHERE id = ?", [
+        projectId,
+      ]);
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "Project not found." });
     }
     const projectName = project[0].project_name;
+    const projectFolderName = project[0].folder_name || projectName;
 
     const folderPath = path.join(
       __dirname,
       "..",
       "uploads",
-      projectName,
-      sectionName
+      projectFolderName,
+      sectionFolderName
     );
 
     if (!fs.existsSync(folderPath)) {
@@ -587,7 +493,10 @@ router.get("/export-qr/:sectionId", async (req, res) => {
 
     const [files] = await db
       .promise()
-      .query("SELECT path_pdf FROM file WHERE section_id = ?", [sectionId]);
+      .query(
+        "SELECT name as file_name, path_pdf FROM file WHERE section_id = ?",
+        [sectionId]
+      );
 
     if (!files || files.length === 0) {
       logger.info(
@@ -600,11 +509,11 @@ router.get("/export-qr/:sectionId", async (req, res) => {
 
     const zip = new AdmZip();
 
+    // Use DB file names for ZIP structure
     for (const file of files) {
       const filePath = path.join(__dirname, "..", file.path_pdf);
       if (fs.existsSync(filePath)) {
-        const relativePath = path.relative(folderPath, filePath);
-        zip.addLocalFile(filePath, path.dirname(relativePath));
+        zip.addLocalFile(filePath, file.file_name);
       } else {
         console.warn(`QR code file not found: ${filePath}`);
       }

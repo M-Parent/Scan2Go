@@ -1,10 +1,9 @@
-# Scan2Go - Full Stack Docker Compose
-# Uses Docker Hub images: mpmk/scan2go
-# Tags: frontend-v1.5, backend-v1.5 (latest points to v1.5)
+# Scan2Go - Microservices Deployment
+# Separate containers for Frontend, Backend, and Database
 
 services:
   # ============================================
-  # React Frontend with Nginx
+  # Frontend - React with Nginx
   # ============================================
   frontend:
     image: mpmk/scan2go:frontend-v1.5
@@ -15,10 +14,10 @@ services:
     depends_on:
       - backend
     networks:
-      - scan2go_network
+      - scan2go-network
 
   # ============================================
-  # Express Backend API
+  # Backend - Express.js API
   # ============================================
   backend:
     image: mpmk/scan2go:backend-v1.5
@@ -27,23 +26,23 @@ services:
     environment:
       SERVER_IP: 0.0.0.0
       SERVER_PORT: 6301
-      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost,http://localhost:3000}
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost}
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB:-scan2go}
       DB_USER: ${POSTGRES_USER:-scan2go}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
     volumes:
-      - uploads_data:/app/uploads
-      - logs_data:/app/logs
+      - uploads-data:/app/uploads
+      - logs-data:/app/logs
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - scan2go_network
+      - scan2go-network
 
   # ============================================
-  # PostgreSQL Database
+  # Database - PostgreSQL 18
   # ============================================
   db:
     image: postgres:18
@@ -54,7 +53,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-scan2go}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
@@ -66,17 +65,12 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - scan2go_network
+      - scan2go-network
 
 volumes:
-  db_data:
-    name: s2g-db-data
-  uploads_data:
-    name: s2g-uploads
-  logs_data:
-    name: s2g-logs
+  db-data:
+  uploads-data:
+  logs-data:
 
 networks:
-  scan2go_network:
-    name: scan2go-network
-    driver: bridge
+  scan2go-network:
