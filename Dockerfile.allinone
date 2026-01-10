@@ -55,10 +55,10 @@ RUN chmod +x /docker-entrypoint.sh
 RUN chown -R postgres:postgres /run/postgresql \
     && chown -R www-data:www-data /var/www/html
 
-# Environment variables with defaults
+# Environment variables with defaults (hard-coded for All-in-One)
 ENV POSTGRES_DB=scan2go \
     POSTGRES_USER=scan2go \
-    POSTGRES_PASSWORD=Password123! \
+    POSTGRES_PASSWORD=ilikescan2go! \
     SERVER_IP=0.0.0.0 \
     SERVER_PORT=6301 \
     FRONTEND_URLS=http://localhost

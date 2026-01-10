@@ -9,9 +9,6 @@ services:
     ports:
       - "80:80"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-scan2go}
-      POSTGRES_USER: ${POSTGRES_USER:-scan2go}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
       FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost}
     volumes:
       - scan2go-uploads:/app/uploads

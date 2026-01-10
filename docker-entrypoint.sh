@@ -5,6 +5,12 @@ set -e
 PGDATA="/var/lib/postgresql/data"
 PGBIN="/usr/lib/postgresql/18/bin"
 
+# Provide default DB credentials for All-in-One; allow overrides from environment
+# (microservices/docker-compose can still set these to different values)
+POSTGRES_DB=${POSTGRES_DB:-scan2go}
+POSTGRES_USER=${POSTGRES_USER:-scan2go}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ilikescan2go!}
+
 # Create directories if needed
 mkdir -p "$PGDATA"
 mkdir -p /var/log/postgresql

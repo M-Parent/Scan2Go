@@ -58,7 +58,6 @@
 docker run -d \
   --name scan2go \
   -p 80:80 \
-  -e POSTGRES_PASSWORD=YourSecurePassword123! \
   -e FRONTEND_URLS=http://YOUR_SERVER_IP \
   -v scan2go-uploads:/app/uploads \
   -v scan2go-db:/var/lib/postgresql/data \
@@ -82,9 +81,6 @@ services:
     ports:
       - "80:80"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-scan2go}
-      POSTGRES_USER: ${POSTGRES_USER:-scan2go}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Password123!}
       FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost}
     volumes:
       - scan2go-uploads:/app/uploads
@@ -100,16 +96,15 @@ volumes:
     name: scan2go-db
 ```
 
-Create a file `.env`:
+Create a file `.env` for local/docker-compose use (All-in-One does not require DB vars):
 
 ```env
-# Database Configuration
-POSTGRES_DB=scan2go
-POSTGRES_USER=scan2go
-POSTGRES_PASSWORD=YourSecurePassword123!
+# NOTE: The All-in-One image includes built-in PostgreSQL credentials
+# If you deploy microservices separately, set the DB variables.
 
 # Server Configuration (REQUIRED)
 FRONTEND_URLS=http://YOUR_SERVER_IP
+
 ```
 
 > ⚠️ **Required:** Replace `YOUR_SERVER_IP` with your server's IP address or domain name for QR codes to work correctly!
@@ -132,20 +127,20 @@ docker compose up -d
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Port 80)                       │
-│                     mpmk/scan2go:frontend-v1.5               │
+│                     Frontend (Port 80)                      │
+│                     mpmk/scan2go:frontend-v1.5              │
 └─────────────────────────────┬───────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Backend (Port 6301)                        │
-│                   mpmk/scan2go:backend-v1.5                  │
+│                   Backend (Port 6301)                       │
+│                   mpmk/scan2go:backend-v1.5                 │
 └─────────────────────────────┬───────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Database (Port 5432)                       │
-│                   postgres:18                                │
+│                   Database (Port 5432)                      │
+│                   postgres:18                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -282,12 +277,14 @@ docker pull mpmk/scan2go:backend-v1.5
 
 ### All-in-One Deployment
 
-| Variable            | Description                       | Default            | Required |
-| ------------------- | --------------------------------- | ------------------ | -------- |
-| `POSTGRES_DB`       | Database name                     | `scan2go`          | ❌       |
-| `POSTGRES_USER`     | Database user                     | `scan2go`          | ❌       |
-| `POSTGRES_PASSWORD` | Database password                 | `Password123!`     | ✅       |
-| `FRONTEND_URLS`     | Server URL for QR code generation | `http://localhost` | ✅       |
+| Variable            | Description                          | Default            | Required |
+| ------------------- | ------------------------------------ | ------------------ | -------- |
+| `POSTGRES_DB`       | Database name (baked into image)     | `scan2go`          | ❌       |
+| `POSTGRES_USER`     | Database user (baked into image)     | `scan2go`          | ❌       |
+| `POSTGRES_PASSWORD` | Database password (baked into image) | `ilikescan2go!`    | ❌       |
+| `FRONTEND_URLS`     | Server URL for QR code generation    | `http://localhost` | ✅       |
+
+> ℹ️ The All-in-One Docker image contains default PostgreSQL credentials and does not require you to set `POSTGRES_*` in `.env` or in `docker-compose.allinone.yml`. If you deploy the microservices stack, you can override these values via `.env` or `docker-compose.microservices.yml`.
 
 ### Microservices Deployment
 

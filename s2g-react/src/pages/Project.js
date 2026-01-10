@@ -661,14 +661,16 @@ export function Project() {
             <div className="sm:ms-auto flex justify-center mt-5 sm:mt-0">
               <button
                 onClick={() => setShowModalAddSection(true)}
-                className="flex Glassmorphgisme px-3 py-1.5 font-bungee me-auto"
+                className="flex Glassmorphgisme px-3 py-1.5 font-bungee me-auto overflow-hidden"
               >
                 <img
                   src="/img/icon/plus-circle.svg"
                   alt="Plus icon"
                   width={24}
                 />
-                <div className="flex items-center ms-1.5">Add</div>
+                <div className="flex items-center ms-1.5 min-w-0 truncate">
+                  Add
+                </div>
               </button>
             </div>
           </div>
