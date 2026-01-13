@@ -277,14 +277,9 @@ docker pull mpmk/scan2go:backend-v1.5
 
 ### All-in-One Deployment
 
-| Variable            | Description                          | Default            | Required |
-| ------------------- | ------------------------------------ | ------------------ | -------- |
-| `POSTGRES_DB`       | Database name (baked into image)     | `scan2go`          | ❌       |
-| `POSTGRES_USER`     | Database user (baked into image)     | `scan2go`          | ❌       |
-| `POSTGRES_PASSWORD` | Database password (baked into image) | `ilikescan2go!`    | ❌       |
-| `FRONTEND_URLS`     | Server URL for QR code generation    | `http://localhost` | ✅       |
-
-> ℹ️ The All-in-One Docker image contains default PostgreSQL credentials and does not require you to set `POSTGRES_*` in `.env` or in `docker-compose.allinone.yml`. If you deploy the microservices stack, you can override these values via `.env` or `docker-compose.microservices.yml`.
+| Variable        | Description                       | Default            | Required |
+| --------------- | --------------------------------- | ------------------ | -------- |
+| `FRONTEND_URLS` | Server URL for QR code generation | `http://localhost` | ✅       |
 
 ### Microservices Deployment
 
